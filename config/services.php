@@ -35,4 +35,17 @@ return [
         ],
     ],
 
+    'elevenlabs' => [
+        'api_key' => env('ELEVENLABS_API_KEY'),
+        'voice_id' => env('ELEVENLABS_VOICE_ID'),
+    ],
+
+    'stripe' => [
+        'key' => env('STRIPE_KEY'),
+        'secret' => env('STRIPE_SECRET'),
+        'webhook' => [
+            'secret' => env('STRIPE_WEBHOOK_SECRET'),
+        ],
+    ],
+
 ];
