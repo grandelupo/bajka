@@ -29,7 +29,9 @@ Route::middleware(['auth'])->group(function () {
 });
 
 // Public book routes
-Route::get('/books/{book}', [BookController::class, 'show'])->name('books.show');
+Route::get('/books/{book}', function ($book) {
+    return redirect()->route('pages.show', ['book' => $book, 'page' => 1]);
+})->name('books.show');
 Route::get('/books/{book}/pages/{page}', [PageController::class, 'show'])->name('pages.show');
 
 // Google OAuth routes

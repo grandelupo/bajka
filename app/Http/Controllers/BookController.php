@@ -20,11 +20,4 @@ class BookController extends Controller
         ]);
     }
 
-    public function show(Book $book): Response
-    {
-        return Inertia::render('Books/Show', [
-            'book' => $book,
-            'page' => $book->pages->first()
-        ]);
-    }
 } 
