@@ -26,6 +26,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/coins/purchase', [CoinPurchaseController::class, 'store'])->name('coins.store');
     Route::get('/coins/history', [CoinPurchaseController::class, 'history'])->name('coins.history');
     Route::post('/transactions/create-payment-intent', [CoinPurchaseController::class, 'createPaymentIntent'])->name('transactions.create-payment-intent');
+    Route::post('/api/transactions/purchase-page', [CoinPurchaseController::class, 'purchasePage'])->name('transactions.purchase-page');
 });
 
 // Public book routes

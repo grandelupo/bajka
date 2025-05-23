@@ -9,6 +9,8 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Stripe\Stripe;
 use Stripe\PaymentIntent;
+use App\Models\Book;
+use App\Models\Transaction;
 
 class CoinPurchaseController extends Controller
 {
@@ -156,5 +158,68 @@ class CoinPurchaseController extends Controller
         } catch (\Exception $e) {
             return response()->json(['message' => 'Failed to create payment intent'], 500);
         }
+    }
+
+    public function purchasePage(Request $request)
+    {
+        $request->validate([
+            'book_id' => 'required|exists:books,id',
+            'page_number' => 'required|integer|min:1',
+            'purchase_next' => 'boolean',
+        ]);
+
+        $book = Book::findOrFail($request->book_id);
+        $page = $book->pages()->where('page_number', $request->page_number)->firstOrFail();
+        $user = auth()->user();
+
+        // Calculate total cost
+        $totalCost = $book->price_per_page;
+        $pagesToPurchase = [$page];
+
+        // If we need to purchase the next page as well
+        if ($request->purchase_next) {
+            $nextPage = $book->pages()->where('page_number', $request->page_number + 1)->first();
+            if ($nextPage) {
+                $totalCost += $book->price_per_page;
+                $pagesToPurchase[] = $nextPage;
+            }
+        }
+
+        // Check if user has enough coins
+        if ($user->coins < $totalCost) {
+            return response()->json(['message' => 'Not enough coins'], 400);
+        }
+
+        $purchasedPageIds = [];
+
+        // Process each page
+        foreach ($pagesToPurchase as $pageToPurchase) {
+            // Check if page is already purchased
+            $hasPurchased = $user->transactions()
+                ->where('book_id', $book->id)
+                ->where('page_id', $pageToPurchase->id)
+                ->exists();
+
+            if (!$hasPurchased) {
+                // Create transaction and deduct coins
+                $transaction = Transaction::create([
+                    'user_id' => $user->id,
+                    'book_id' => $book->id,
+                    'page_id' => $pageToPurchase->id,
+                    'coins_spent' => $book->price_per_page,
+                ]);
+
+                $purchasedPageIds[] = $pageToPurchase->id;
+            }
+        }
+
+        // Deduct total coins
+        $user->decrement('coins', $totalCost);
+
+        return response()->json([
+            'message' => 'Page(s) purchased successfully',
+            'purchased_page_ids' => $purchasedPageIds,
+            'remaining_coins' => $user->coins,
+        ]);
     }
 } 

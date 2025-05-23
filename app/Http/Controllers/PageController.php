@@ -79,6 +79,7 @@ class PageController extends Controller
                 'isAuthenticated' => (bool)$user,
             ],
             'userCoins' => $user ? $user->coins : 0,
+            'csrf_token' => csrf_token(),
         ]);
     }
 } 
