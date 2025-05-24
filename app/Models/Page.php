@@ -30,4 +30,9 @@ class Page extends Model
     {
         return $this->hasMany(Transaction::class);
     }
+
+    public function getRouteKeyName(): string
+    {
+        return 'page_number';
+    }
 } 

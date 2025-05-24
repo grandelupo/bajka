@@ -13,7 +13,10 @@ class PageController extends Controller
 {
     public function show(Book $book, Page $page): Response
     {
-        
+        // Ensure the page belongs to the book
+        if ($page->book_id !== $book->id) {
+            abort(404);
+        }
 
         $user = auth()->user();
         $freePages = 6;

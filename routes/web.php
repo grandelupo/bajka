@@ -33,7 +33,9 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/books/{book}', function ($book) {
     return redirect()->route('pages.show', ['book' => $book, 'page' => 1]);
 })->name('books.show');
-Route::get('/books/{book}/pages/{page}', [PageController::class, 'show'])->name('pages.show');
+Route::get('/books/{book}/pages/{page}', [PageController::class, 'show'])
+    ->where('page', '[0-9]+')
+    ->name('pages.show');
 
 // Google OAuth routes
 Route::get('/auth/google/redirect', [GoogleController::class, 'redirect'])->name('google.redirect');
