@@ -1,0 +1,6 @@
+// ... existing code ...
+    protected $commands = [
+        Commands\BookExport::class,
+        Commands\BookImport::class,
+    ];
+// ... existing code ...

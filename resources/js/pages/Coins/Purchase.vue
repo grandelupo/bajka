@@ -43,6 +43,7 @@
 import { ref, onMounted } from 'vue';
 import { loadStripe } from '@stripe/stripe-js';
 import AppLayout from '@/Layouts/AppLayout.vue';
+import { usePage } from '@inertiajs/vue3';
 
 const props = defineProps({
     packages: Array,
@@ -74,7 +75,8 @@ const initializePayment = async () => {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': props.csrf_token,
+                'X-CSRF-TOKEN': usePage().props.csrf_token,
+                'Accept': 'application/json',
             },
             body: JSON.stringify({
                 package_id: selectedPackage.value,
@@ -82,31 +84,45 @@ const initializePayment = async () => {
         });
 
         if (!response.ok) {
-            throw new Error('Failed to create payment intent');
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Failed to initialize payment');
         }
 
-        const { clientSecret } = await response.json();
-
-        if (!stripe || !clientSecret) {
-            throw new Error('Stripe or client secret is missing');
+        const data = await response.json();
+        
+        if (!data.clientSecret) {
+            throw new Error('Invalid response from server: missing client secret');
         }
 
         elements = stripe.elements({
-            clientSecret,
+            clientSecret: data.clientSecret,
             appearance: {
                 theme: 'stripe',
+                variables: {
+                    colorPrimary: '#3B82F6',
+                    colorBackground: '#ffffff',
+                    colorText: '#1F2937',
+                },
             },
         });
+
+        // Clear any existing payment element
+        const paymentElementContainer = document.getElementById('payment-element');
+        if (paymentElementContainer) {
+            paymentElementContainer.innerHTML = '';
+        }
 
         const paymentElement = elements.create('payment');
         paymentElement.mount('#payment-element');
     } catch (error) {
         console.error('Error initializing payment:', error);
+        alert('Failed to initialize payment. Please try again.');
     }
 };
 
 const handlePayment = async () => {
     if (!stripe || !elements) {
+        alert('Payment system not initialized. Please try again.');
         return;
     }
 
@@ -118,10 +134,12 @@ const handlePayment = async () => {
             confirmParams: {
                 return_url: `${window.location.origin}/coins/purchase/confirm`,
             },
+            redirect: 'if_required',
         });
 
         if (error) {
             console.error('Payment error:', error);
+            alert(error.message || 'Payment failed. Please try again.');
         } else if (paymentIntent) {
             // Handle successful payment
             window.location.href = route('coins.purchase.confirm', {
@@ -131,8 +149,9 @@ const handlePayment = async () => {
         }
     } catch (error) {
         console.error('Payment processing error:', error);
+        alert('An unexpected error occurred. Please try again.');
     } finally {
         processing.value = false;
     }
 };
-</script> 
+</script>

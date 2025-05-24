@@ -13,6 +13,8 @@ class PageController extends Controller
 {
     public function show(Book $book, Page $page): Response
     {
+        
+
         $user = auth()->user();
         $freePages = 6;
         $registeredFreePages = 11;
