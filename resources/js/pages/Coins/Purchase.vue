@@ -4,7 +4,7 @@
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6">
-                        <h1 class="text-2xl font-bold mb-8">Purchase Coins</h1>
+                        <h1 class="text-2xl font-bold mb-8">Kup monety</h1>
 
                         <!-- Coin Packages -->
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -16,8 +16,8 @@
                                 @click="selectPackage(pkg)"
                             >
                                 <h3 class="text-xl font-semibold mb-2">{{ pkg.name }}</h3>
-                                <p class="text-3xl font-bold mb-2">${{ pkg.price }}</p>
-                                <p class="text-gray-600">{{ pkg.coins }} coins</p>
+                                <p class="text-3xl font-bold mb-2">{{ pkg.price }} zł</p>
+                                <p class="text-gray-600">{{ pkg.coins }} monet</p>
                             </div>
                         </div>
 
@@ -29,7 +29,7 @@
                                 class="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700"
                                 :disabled="processing"
                             >
-                                {{ processing ? 'Processing...' : 'Purchase Coins' }}
+                                {{ processing ? 'Przetwarzanie...' : 'Kup monety' }}
                             </button>
                         </div>
                     </div>

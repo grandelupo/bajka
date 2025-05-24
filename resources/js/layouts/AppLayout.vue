@@ -20,7 +20,7 @@ withDefaults(defineProps<Props>(), {
                     <div class="flex">
                         <div class="flex-shrink-0 flex items-center">
                             <Link :href="route('home')" class="text-xl font-bold text-gray-800">
-                                Bajka Reader
+                                Czytnik Bajek
                             </Link>
                         </div>
                     </div>
@@ -30,21 +30,15 @@ withDefaults(defineProps<Props>(), {
                             <div class="ml-3 relative">
                                 <div class="flex items-center space-x-4">
                                     <span class="text-gray-700">
-                                        Coins: {{ $page.props.auth.user.coins }}
+                                        Monety: {{ $page.props.auth.user.coins }}
                                     </span>
-                                    <Link
-                                        :href="route('dashboard')"
-                                        class="text-gray-700 hover:text-gray-900"
-                                    >
-                                        Dashboard
-                                    </Link>
                                     <Link
                                         :href="route('logout')"
                                         method="post"
                                         as="button"
                                         class="text-gray-700 hover:text-gray-900"
                                     >
-                                        Logout
+                                        Wyloguj
                                     </Link>
                                 </div>
                             </div>
@@ -54,13 +48,13 @@ withDefaults(defineProps<Props>(), {
                                 :href="route('login')"
                                 class="text-gray-700 hover:text-gray-900"
                             >
-                                Login
+                                Zaloguj
                             </Link>
                             <Link
                                 :href="route('register')"
                                 class="ml-4 text-gray-700 hover:text-gray-900"
                             >
-                                Register
+                                Zarejestruj
                             </Link>
                         </template>
                     </div>

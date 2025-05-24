@@ -29,7 +29,7 @@
                                     </div>
                                 </div>
                                 <div v-else class="aspect-[3/4] bg-gray-100 rounded-lg flex items-center justify-center">
-                                    <p class="text-gray-500">No page content available</p>
+                                    <p class="text-gray-500">Brak zawartości strony</p>
                                 </div>
                             </div>
 
@@ -54,20 +54,37 @@
                                     </div>
                                 </div>
                                 <div v-else class="aspect-[3/4] bg-gray-100 rounded-lg flex items-center justify-center">
-                                    <p class="text-gray-500">No more pages</p>
+                                    <p class="text-gray-500">Brak kolejnych stron</p>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Audio Player -->
-                        <div v-if="currentPage?.audio_url" class="mt-8">
-                            <audio
-                                ref="audioPlayer"
-                                :src="currentPage.audio_url"
-                                class="w-full"
-                                controls
-                                preload="none"
-                            ></audio>
+                        <!-- Audio Players -->
+                        <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <!-- Left Page Audio -->
+                            <div v-if="currentPage?.audio_url">
+                                <audio
+                                    ref="leftAudioPlayer"
+                                    :src="currentPage.audio_url"
+                                    class="w-full"
+                                    controls
+                                    preload="none"
+                                    @ended="handleLeftAudioEnded"
+                                ></audio>
+                            </div>
+                            <div v-else class="h-12"></div>
+
+                            <!-- Right Page Audio -->
+                            <div v-if="nextPage?.audio_url" class="hidden md:block">
+                                <audio
+                                    ref="rightAudioPlayer"
+                                    :src="nextPage.audio_url"
+                                    class="w-full"
+                                    controls
+                                    preload="none"
+                                ></audio>
+                            </div>
+                            <div v-else class="h-12 hidden md:block"></div>
                         </div>
 
                         <!-- Navigation Controls -->
@@ -77,11 +94,11 @@
                                 @click="navigateToPage(prevPage.page_number)"
                                 class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
                             >
-                                <span class="hidden md:inline">Previous Page</span>
+                                <span class="hidden md:inline">Poprzednia strona</span>
                                 <span class="md:hidden">←</span>
                             </button>
                             <div class="text-gray-600">
-                                Page {{ currentPage?.page_number || 0 }} of {{ book.total_pages }}
+                                Strona {{ currentPage?.page_number || 0 }} z {{ book.total_pages }}
                             </div>
                             <button
                                 v-if="nextPage"
@@ -89,9 +106,9 @@
                                 class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
                             >
                                 <span class="hidden md:inline">
-                                    Next Page
+                                    Następna strona
                                     <span v-if="willCostCoins(nextPageNumber())" class="ml-2 text-yellow-300">
-                                        ({{ calculateTotalCost(nextPageNumber()) }} coins)
+                                        ({{ calculateTotalCost(nextPageNumber()) }} monet)
                                     </span>
                                 </span>
                                 <span class="md:hidden">
@@ -155,6 +172,8 @@ const currentPage = ref(null);
 const nextPage = ref(null);
 const prevPage = ref(null);
 const audioPlayer = ref(null);
+const leftAudioPlayer = ref(null);
+const rightAudioPlayer = ref(null);
 
 // Debug page state changes
 watch([currentPage, nextPage, prevPage], ([newCurrent, newNext, newPrev]) => {
@@ -192,7 +211,7 @@ const formatContent = (content) => {
                 @loadeddata="handleVideoLoaded('${videoId}')"
             >
                 <source src="${videoUrl}" type="video/mp4">
-                Your browser does not support the video tag.
+                Twoja przeglądarka nie obsługuje tagu video.
             </video>
         </div>`;
     });
@@ -452,6 +471,23 @@ const navigateToPage = async (pageNumber) => {
         route('pages.show', { book: props.book.id, page: page.id })
     );
 };
+
+const handleLeftAudioEnded = () => {
+    const isMobile = window.innerWidth < 768;
+    if (!isMobile && rightAudioPlayer.value && nextPage.value?.audio_url) {
+        rightAudioPlayer.value.play();
+    }
+};
+
+// Update audio players when pages change
+watch([currentPage, nextPage], ([newCurrentPage, newNextPage]) => {
+    if (leftAudioPlayer.value) {
+        leftAudioPlayer.value.load();
+    }
+    if (rightAudioPlayer.value) {
+        rightAudioPlayer.value.load();
+    }
+});
 
 // Add window resize handler to update navigation when switching between mobile and desktop
 onMounted(() => {

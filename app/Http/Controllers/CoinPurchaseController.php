@@ -19,27 +19,27 @@ class CoinPurchaseController extends Controller
         $packages = [
             [
                 'id' => 'basic',
-                'name' => 'Basic',
+                'name' => 'Podstawowy pakiet',
                 'coins' => 100,
-                'price' => 5.00,
-            ],
-            [
-                'id' => 'standard',
-                'name' => 'Standard',
-                'coins' => 500,
                 'price' => 20.00,
             ],
             [
+                'id' => 'standard',
+                'name' => 'Mała historia',
+                'coins' => 500,
+                'price' => 80.00,
+            ],
+            [
                 'id' => 'premium',
-                'name' => 'Premium',
+                'name' => 'Wielka opowieść',
                 'coins' => 1000,
-                'price' => 35.00,
+                'price' => 145.00,
             ],
             [
                 'id' => 'ultimate',
-                'name' => 'Ultimate',
+                'name' => 'Bajkowy świat',
                 'coins' => 2500,
-                'price' => 75.00,
+                'price' => 255.00,
             ],
         ];
 
@@ -142,7 +142,7 @@ class CoinPurchaseController extends Controller
         try {
             $paymentIntent = PaymentIntent::create([
                 'amount' => $package['price'] * 100, // Convert to cents
-                'currency' => 'usd',
+                'currency' => 'pln',
                 'automatic_payment_methods' => [
                     'enabled' => true,
                 ],

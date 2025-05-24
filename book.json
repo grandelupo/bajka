@@ -1,0 +1,484 @@
+{
+    "book": {
+        "id": 5,
+        "title": "To juz są inne czasy",
+        "description": "A book generated from text",
+        "price_per_page": 5,
+        "created_at": "2025-05-20T22:34:57.000000Z",
+        "updated_at": "2025-05-20T22:34:57.000000Z"
+    },
+    "pages": [
+        {
+            "id": 14,
+            "page_number": 1,
+            "content": "<b>To już są inne czasy.<\/b>\n\nTa bajka zaczęła się dawno, dawno temu, ale jej drugi rozdział rozpoczął się całkiem niedawno. Dawno, dawno temu w bajce brała udział piękna królewna, groźny smok i dzielny szewczyk. A całkiem niedawno zdarzyło się to, co Wam dzisiaj opowiem…",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 15,
+            "page_number": 2,
+            "content": "Olga siedziała pochylona nad biurkiem i zawzięcie coś wypatrywała przez lupę. Pac! Kukiełka skoczyła na biurko, ale nawet nie musnęła ani Olgi, ani tego, czemu dziewczynka przyglądała się z przejęciem. Kukiełka to biały, puszysty kot. Cichy, łagodny, delikatny jak mgiełka. Ma puchaty ogonek, tak miękki jak pędzel z marabuta, którego Olga używa do nanoszenia grafitowego proszku na ślady daktyloskopijne. To specjalna technika detektywistyczna, dzięki której wyłaniają się ślady niewidoczne gołym okiem. Wszystko wygląda na czyste, ale gdy pokryjemy powierzchnię grafitowym proszkiem za pomocą pędzelka z puchu marabuta, okazuje się, że ktoś to miejsce dotykał i pozostawił odciski palców. Linie papilarne pokrywają opuszki naszych palców, a wzory, jakie tworzą te linie, są niepowtarzalne. Każdy z nas ma linie papilarne charakterystyczne tylko dla niego! Dzięki nim można rozpoznać, kto dotykał jakąś rzecz. Jeśli ktoś nie chce być łatwo rozpoznany, powinien porządnie myć ręce…",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 16,
+            "page_number": 3,
+            "content": "Właśnie przed chwilą Olga zanurzyła w grafitowym proszku swój profesjonalny, detektywistyczny pędzel i lekko pokryła nim blat biurka, tuż przy jego brzegu. \n\nJej detektywistyczna intuicja nie zawiodła jej! Proszek ujawnił charakterystyczne znaki.",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 17,
+            "page_number": 4,
+            "content": "– Czyje to ślady? – zastanawiała się Olga i bacznie przyglądała im się przez ogromną lupę. Na pewno nie były to ślady człowieka. Nie były to też ślady kota… Dziewczynka zamyśliła się głęboko. Jej mózg pracował tak intensywnie, jak podczas zeszłorocznych zawodów szachowych. Kiedy Olga była bardzo skupiona, kiedy myślała niemal całą sobą, jej włosy stawały się kolorowe i czochrały się w burzę loków. Nie dotykała wtedy głowy – to wszystko było wynikiem procesów elektrycznych zachodzących na połączeniu komórek nerwowych w jej mózgu. Burza w mózgu! Niestety, poza kolorowymi blaskami bijącymi od jej włosów, nie było żadnego innego efektu tego niesamowitego procesu… Olga osunęła się w swoim obrotowym krześle i odpoczywała po ogromnym wysiłku.",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 18,
+            "page_number": 5,
+            "content": "Tymczasem Kukiełka podbiegła do drzwi.\n\n– Miauuu…. – zapowiedziała przybywających gości.\n\n– Kto to, Kukiełko? Igor i Apetyt! – ucieszyła się Olga na widok przyjaciół.\n\nIgor był ubrany w sweter przypominający kolczugę, a na głowie miał czapkę z nadrukiem rycerskiego szyszaka. Jego dżinsy i sportowe buty do biegania ucieszyły Olgę, bo świadczyły, że jednak nie przenieśli się w czasie i że wciąż jest praprawnuczką królewny z czasów, które były dawno, dawno temu.\n\nApetyt uśmiechał się od ucha do ucha i machał ogonem jak śmigłem wiatraka. Kukiełka zaprowadziła go do swojej miski, bo wiedziała, że Apetyt uwielbia kocią karmę i zawsze, kiedy tylko przybywał, częstowała go czym micha bogata.",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 19,
+            "page_number": 6,
+            "content": "– Igor, patrz! – tymczasem Olga pokazywała przyjacielowi precyzyjnie zebrany ślad.\n\nIgor miał okulary z bardzo grubymi szkłami, dlatego nawet nie potrzebował lupy, by prześwidrować ślad swoim bystrym okiem uzbrojonym (w te okulary właśnie)…\n\n– To ślad smoka! – stwierdził z całą stanowczością.\n\n– Igor… – żachnęła się Olga. – To już są inne czasy… – poinformowała chłopca, ale sama nie była do końca o tym przekonana. Inne czasy? Co to właściwie znaczy? Igora przywiózł tata samochodem, a nie żadną karetą, a tym bardziej nie przyjechali konno. Rycerz w dzisiejszych czasach nosi gustowny sweter z dużymi dziurami, ale miękki, z ekologicznej bawełny, a nie z drutu. Czapka z nadrukiem sublimacyjnym, super realistycznym, ale do szyszaka jej daleko…",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 20,
+            "page_number": 7,
+            "content": "– Nie pamiętasz, co mówiła twoja babcia? Smoki są odporne na zanieczyszczenia. Nie są też takie głupie, żeby nie pozwolić swoim żołądkom ewoluować, więc ewoluowały. Z mięsożernych stały się wszystkożerne. – Igor zauważył, że Olga słucha jego słów z wypiekami na twarzy, więc mówił z coraz większą pewnością. – Pamiętam, jak twoja babcia opowiadała przy kominku, jeszcze tym z prawdziwym ogniem, nie tym elektronicznym, który masz teraz w salonie, że smoki są wrażliwe jedynie na brak wyobraźni. Gdy brak w pobliżu wyobraźni, zaczynają chorować, nikną w oczach, aż w końcu mogą zniknąć. Ale to im nie grozi, bo na świecie zawsze będą dzieci, a dzieci zawsze będą miały wyobraźnię!",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 21,
+            "page_number": 8,
+            "content": "– No, nie wiem… – Olga była sceptyczna. Przypomniało jej się, jak ostatnio w szkole jeden z Kolegów Bez Wyobraźni zrobił jej przykrość, twierdząc, że „kicha jak baba”. Ciekawe, jak niby kicha baba?! Czym się różni babskie kichanie od niebabskiego?...\n\n– Będą miały! Mówię ci! To jedyna pewna rzecz na tym świecie. Dlatego dzieci muszą przetrwać, a wraz z nimi oczywiście smoki. – Igor aż się zapalił do swojego wywodu, a jego okulary zaszły parą.\n\nOlga była pod wrażeniem jego wiary w ludzkość, nadziei i… w ogóle było w tym wszystkim coś z miłości.\n\n– Zgoda! To ślad smoka. Ale dlaczego jest taki niewyraźny? Taki niepewny? Taki nawet, powiedziałabym, tyci, tyci…?\n\n– To oczywiste. Smok jest wygłodzony. Zaniedbany. Podejrzewam, że jest uwięziony.",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 22,
+            "page_number": 9,
+            "content": "– Gdzie?! Przez kogo?!\n\n– Nie chcę robić sztucznej sensacji… Nie chcę nikogo oskarżać… Ale… podejrzewam, że przez dorosłych.\n\n– O!!! – Olga była wstrząśnięta i oburzona. – Nie damy się, Igor. Nie oddamy naszej wyobraźni.\n\n- I po to tu jestem. Patrz, co napisałem. – Igor otworzył swojego wysłużonego laptopa. - Nauka nauką, real realem, ale smoki będą zawsze! \n\n- Ratujmy tego biedaka!\n\nIgor kilka razy poruszył zwinnymi palcami po ledwo wystających z tafli klawiszach. Zaszumiało, zaklikało i na ekranie pojawił się tajemniczy kod. Był kolorowy, mienił się tysiącem barw na czarnym tle. No, może przesadziłam. Nie było ich tysiąc, ale tak się pisze w książkach, żeby bardziej literacko zabrzmiało, więc na potrzeby literatury przyjmijmy, że kod był bajecznie kolorowy.",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 23,
+            "page_number": 10,
+            "content": "Mmmm… – z uznaniem zamruczała Olga.\n\nMrrrrr… – zawtórowała jej Kukiełka, bo poczuła, że to ten moment, kiedy należy mruczeć.\n\n- Jesteś pod wrażeniem? – zwrócił się Igor do Olgi, z dumą wypinając pierś w sweterku à la kolczuga, jakby oczekiwał przypięcia odznaczenia.\n\n- Bardzo. Jest imponujący. Ale wolałabym go oglądać po przekonwertowaniu – powiedziała Olga, jak się jej wydawało, bardzo mądrze.\n\nTym razem Igor popatrzył na nią z uznaniem. Wiedział, że Olga jest superdetektywem i znakomitą szachistką, ale raczej słabą programistką. Nie napisała jeszcze żadnej apki. Trzeba jednak przyznać, że umiała docenić pracę innych, a zwłaszcza Igora.\n\n- To jest program sterujący dronem – powiedział Igor i zamilkł, obserwując mimikę Olgi.\n\nOlga wybałuszyła oczy. Tego się nie spodziewała.",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 24,
+            "page_number": 11,
+            "content": "- Co ma dron do smoka? – zapytała, gdy otrząsnęła się w końcu z niedowierzania.\n\n- Ma, ma… Zaprogramowany przeze mnie dron będzie dowoził smokowi pożywienie i inne niezbędne do życia produkty. Zademonstruję ci wszystko dokładnie – Igor pobiegł do przedpokoju, skąd przyniósł swój plecak. Zamaszyście rozsunął zamek i z namaszczeniem wyciągnął jabłko, kanapkę z serem i sok marchewkowy. Chwilę się zawahał, zanurzył rękę w najmniejszej kieszonce plecaka i wydobył z niego słodką, różową piankę. Następnie rozsunął plecak jeszcze bardziej i z jego czeluści wyjął… imponującego drona!\n\n- Ale piękny – zachwyciła się Olga. – Masz gust.",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 25,
+            "page_number": 12,
+            "content": "- Nie do końca. Smok może się go wystraszyć. Potrzebny będzie kamuflaż, jak w każdej akcji specjalnej. To podstawa w operacjach komandoskich. Mój tata tak mówi. Dlatego… – popatrzył na Olgę z wyrazem dowódcy, który za chwilę przekaże oddziałowi tajną misję – będziesz głównym malarzem.\n\n- Mam wymalować go we wzór moro? – upewniła się Olga, bo w lot się zorientowała, na czym będzie polegała jej rola w tej misji.\n\n- Moro maluje się, gdy akcja jest w krzakach, a dron lata po niebie!\n\n- Oczywiście! – Olga klepnęła się dłonią w czoło. – Wymaluję go w chmurki.\n\n- Nie sądzę, żeby to był to dobry pomysł. Chmurki nie furkoczą. Furkoczą owady w czasie lotu.",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 26,
+            "page_number": 13,
+            "content": "- O, tak… Zrobię z niego motyla, kolorowego jak moje włosy… – rozmarzyła się Olga i pobiegła do szafki z farbami. Zajrzała do niej, ale chyba nic nie znalazła, zaczęła grzebać, coraz bardziej intensywnie…\n\n- Ale mamy pecha! Zostawiłam farby w szkole! – westchnęła.\n\n- Igor podszedł, by przyjrzeć się zawartości szafki.\n\n- A to co? – zapytał, trzymając w rękach słoiczek z czerwoną farbką.\n\n- To lakier do paznokci. Malowałam nim biedronkę na kwiatkach z bibuły.\n\n- Świetnie! To masz już dwie rzeczy: lakier i wprawę. Zrób, proszę, z drona biedronkę.\n\n- Dronek-biedronek! Dobre. Nawet pasuje – zrobiło się bardzo wesoło i dzieci przystąpiły do charakteryzowania czarnego dronu w kolorowego, przyjaznego owada, którego smok na pewno się nie wystraszy.",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 27,
+            "page_number": 14,
+            "content": "- Mam tylko nadzieję, że go nie zje razem z pakunkiem – zauważyła Olga.\n\n- Nie no, co ty… To już inne czasy… Smoki nie pożerają wypchanych sztucznych rzeczy… Smok głupi nie jest i uczy się na błędach…\n\n- Wiem, wiem… Tak tylko mówię… Chciałam się upewnić.\n\nOlga malowała piękne czerwone kropki na czarnym dronie, gdy nagle…\n\n- Co ja zrobiłam?! – niemal wrzasnęła.",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 28,
+            "page_number": 15,
+            "content": "Igor spojrzał na drona zdezorientowany.– No, pięknie to zrobiłaś… Masz talent! Takie okrąglutkie, jak od spodka!– No, chyba latającego… Nie załamuj mnie! Nie widzisz?!– Co miałbym widzieć? Jesteś mistrzunio!– Czy ty naprawdę nie widzisz?! Kolory! Są odwrotnie! Przecież biedronki mają czarne kropki na czerwonych skrzydełkach, a ja namalowałam czerwone kropki na czarnym dronie!– Eee… Czym ty się przejmujesz? Smok tego nawet nie zauważy… Co za różnica? Poza tym są różne rasy biedronek. Widziałem żółte, pomarańczowe, z drobnymi kropkami, z wielkimi, z dużą liczbą kropek i z małą… Królestwo przyrody, zwłaszcza owadów, jest przebogate. Nie róbmy problemu tam, gdzie go nie ma.",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 29,
+            "page_number": 16,
+            "content": "Igor stanowczo uspokajał Olgę, jednocześnie z satysfakcją oglądając wielkiego, mechanicznego owada.Być może w fortach żyją smoki…\n\nW porzuconych, starych fortach mieszkał smok. Widział już wielu ludzi, którzy czasem się tu kręcili. A to konserwator zabytków — ktoś, kto potrafi sprawić, że ruiny znów wyglądają jak nowe. A to deweloperzy — budowniczowie nowoczesnych domów, często w miejscach zaniedbanych i zapomnianych. Widział ludzi, którzy oglądali forty i kręcili głowami:\n\n— Szkoda, szkoda… Takie śliczne były… Zabytkowe…\n\nCzasem bawiły się tu dzieci — grały w piłkę, w chowanego, ale rodzice szybko je wołali:\n\n— Nie kręćcie się tam, nie wiadomo, kto się tam czai!\n\nSmok słyszał to wiele razy.",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 30,
+            "page_number": 17,
+            "content": "— Słusznie. Nie mógłbym ich przecież obronić. Po pierwsze, nie mogę się ujawnić. Po drugie, jestem już bardzo głodny… Nie jadłem chyba od stu lat. Mój organizm nie jest ogrzewany, nie mam energii, a najgorsze jest to, że… nie mogę już ziać ogniem. Nie mam już w sobie ognia. Ale mnie pali. Zgaga. To po prostu straszne… Nie ja jestem straszny, tylko sytuacja, w której się znalazłem…\n\nSmok powiódł nostalgicznym spojrzeniem po horyzoncie. Patrzył w dal, jak majtek na bocianim gnieździe w poszukiwaniu latarni. Niebo było kolorowe — mieniło się amarantami, odcieniami czerwieni, a pomarańczowe refleksy, niczym jęzory ognia, przenikały szafirowe pozostałości dziennego nieba. Słońce nakrywało się swoją barwną kołdrą. Chyba otworzyło okno w sypialni, bo rześkie podmuchy dotarły do nozdrzy smoka.",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 31,
+            "page_number": 18,
+            "content": "Zaciągnął się powietrzem, ale zaraz prychnął. Poczuł smog.\n\nDlatego smoki są odporne na zanieczyszczenia — gdy tylko wyczują smog, parskają i wyrzucają go z nozdrzy. Kichają, prychają… Ale nie martwcie się — nie mają zbyt dużego kataru. Naukowcy zbadali, że tzw. kwaśne deszcze to nie smoczy katar. Odetchnęliście z ulgą? Wiem, wiem… Trudno powiedzieć, co gorsze — kwaśne deszcze czy smoczy katar…\n\n— Hmmm… Coś tam się rusza na horyzoncie… — Smok zmarszczył brwi, wpatrując się w cień, który powoli się powiększał.",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 32,
+            "page_number": 19,
+            "content": "Wbił w niego ślepia i obserwował. Ruch cienia był jednostajny, powolny… a to zaczęło go usypiać. W pewnym momencie usłyszał mruczenie — coraz głośniejsze, ale równie monotonne. Był już bardzo słaby, a to dźwięczne buczenie uśpiło go całkowicie. Smok padł na mech, zaciągnął się wilgotnym zapachem trawy i starej, nasiąkniętej cegły, a potem… zasnął. Spał głęboko, miarowo oddychając.",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 33,
+            "page_number": 20,
+            "content": "Cień zbliżył się do fortów i osiadł na kaponierze. Dawniej ten fragment fortyfikacji miał bronić fosy, ale dla cienia stał się idealnym lądowiskiem. Furgocząca sylwetka wzbiła się jeszcze na kilka metrów, po czym wystrzeliła na kaponierę jakieś kulki i groszki. Trudno powiedzieć, co to było — noc była ciemna, a tylko kot mógłby to dostrzec. Potem cień opadł na murawę…\n\nPrzyjaźń od pierwszego wejrzenia\n\nPierwsze promienie słońca połaskotały smoka. A że był wrażliwy na łaskotki, otworzył jedno oko, potem drugie… i zerwał się na równe nogi.\n\nSpojrzał w stronę kaponiery, przetarł oczy.\n\n— Nigdy w tym klimacie nie widziałem tak dużych biedronek!",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 34,
+            "page_number": 21,
+            "content": "Dookoła wielkiego owada rozpościerała się łąka pełna przeróżnych kwiatów. Były kolorowe jak włosy Olgi, ale że smok nie znał Olgi, były dla niego po prostu kolorowe.\n\n— Przecież tych kwiatów nigdy tu nie było… Skąd one się tu wzięły? Chyba jakiś deweloper położył tu łąkę kwietną z rolki… — powiedział do siebie.\n\n— To nie deweloper. — Przemówiła biedronka. — To ja. Przywiozłam ci kwiaty modyfikowane genetycznie tak, żeby szybko zakwitały. Podoba ci się?\n\n- GMO?...\n\n- Biotechnologia ma swoje zalety i wady, jak wszystko. Nic nie jest tylko dobre albo tylko złe. Zgodzisz się ze mną?\n\n- Wolałbym nie uogólniać – odpowiedział smok dyplomatycznie. – Brak ognia jest jednoznacznie niekomfortowy…",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 35,
+            "page_number": 22,
+            "content": "- Widzę, że jesteś myślącym i ogarniętym smokiem. Zdecydowanie nie popadniesz w żaden fanatyzm.\n\n- Staram się myśleć. Z pewnych względów trzymam dystans od owczego pędu. To nie mój sposób bycia.\n\n- Słusznie, słusznie… Popieram, pochwalam, a przede wszystkim gratuluję takiego podejścia do rzeczywistości – powiedziała biedronka, po czym zrobiła kilka szybkich półobrotów, jakby chciała zatańczyć twista. Zafurgotała, lekko uniosła się nad łąką i spod jej skrzydeł wypadły pakunki.\n\n- To dla ciebie: kanapka z serem, sok, jabłko i pianka. Smacznego.\n\nOczy smoka zaszkliły się ze wzruszenia. Karma wróciła. I to dosłownie! Ale doświadczenie uczy… Nie rzucił się na poczęstunek, jak zrobił to kiedyś, dawno, dawno temu. Biedronka zauważyła jego wahanie i taktownie dodała:",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 36,
+            "page_number": 23,
+            "content": "- Właściwie to dla nas. Zapraszam cię na śniadanie.\n\nSmok pobiegł po serwetkę, którą trzymał pod starym kluczem. Znalazł ją kiedyś w kazamacie. Przypuszczał, że jakaś dama wręczyła ją żołnierzowi na pamiątkę, ale ten najpewniej ją zgubił. W końcu w kazamacie przebywali ludzie – to oczywiste. Smok nie miał do tej chusteczki żadnego sentymentu, ale w duchu recyklingu dał jej drugie życie i zrobił z niej serwetkę. Miał marzenie, że kiedyś zje na niej śniadanie. I oto – marzenie się ziściło!",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 37,
+            "page_number": 24,
+            "content": "Z namaszczeniem godnym realizacji wielkich planów rozłożył serwetkę na próchniejącym pieńku. Biedronka równie uroczyście położyła na niej jabłko, sok, kanapkę z serem i piankę. Siedzieli chwilę przy swoim \"zabytkowym\" stole, podziwiając bogactwo zastawy. W końcu smok, jako gospodarz, zachęcił do biesiadowania:\n\n- Częstujmy się.\n\n- Bardzo dziękuję. Przekroję wszystko na pół – powiedziała biedronka i jednym szybkim ruchem odnóża podzieliła jabłko, kanapkę i piankę.\n\n- O! Znasz karate! – Smok spojrzał na nią z uznaniem.\n\n- Eee… Takie tam… Wgrany program… – rzuciła skromnie, po czym w mgnieniu oka zrobiła z połowy jabłka pół - ogryzek.",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 38,
+            "page_number": 25,
+            "content": "Smok też nie dał się długo prosić. Połknął swoją połowę jednym kłapnięciem paszczy. Zarumienił się lekko, zawstydzony, że może jest zbyt łapczywy, ale biedronka nie dała po sobie nic poznać. Zresztą była zaprogramowana na misję humanitarną – miała wgrane moduły taktu, kultury osobistej, wyrozumiałości, empatii i innych elitarno-testowych cech stworzonych przez Igora. AI uczy się na autentycznych przypadkach, a Igor długo zbierał dane, głównie wśród swoich bliskich, rodziny i przyjaciół. W końcu udało mu się stworzyć prototyp i wysłać go w misję do smoka.",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 39,
+            "page_number": 26,
+            "content": "Smok nie usłyszał już ostatniego zdania – był zbyt zajęty delektowaniem się kanapką z serem. Mlasnął smoczym jęzorem i tkliwym spojrzeniem otulił swoją połowę pianki. Przez moment rozważał, czy jej nie zachować na później – kto wie, może znowu przez sto lat nie będzie miał nic w paszczy? Ale zanim zdążył odpowiedzieć sobie na to pytanie, pianka już rozpuszczała się w jego brzuchu…\n\n- Mam wodę – oznajmił z dumą.",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 40,
+            "page_number": 27,
+            "content": "Zawinął skrzydłem i przygarnął do stołu cebrzyk z wodą, którą zbierał z liści. Była czysta i nadawała się do picia. Smok przez lata nauczył się różnych sposobów przetrwania. Wiedział, jak zdobywać wodę, jak rozpoznawać jadalne owoce, korzenie, liście i kwiaty. Życie nauczyło go, że przetrwanie to sztuka obserwacji i adaptacji. Z liści wykonał kubeczki, które biesiadnicy zanurzali w cebrzyku z wodą i popijali uważając, by nie uronić żadnej kropli. To już są inne czasy… najcenniejsza jest woda i czyste powietrze. Złotem, diamentami nikt się nie naje, nie zaspokoi pragnienia. Owszem, kupi wodę, ale nawet jakby miał cały skarbiec złota i diamentów, to czy wystarczy mu na wodę na całę życie? Smokowi na pewno by nie wystarczyło z racji smoczej podatności na długowieczność…",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 41,
+            "page_number": 28,
+            "content": "Co u Olgi i Igora?\n\nTymczasem dzieci nie mogły się doczekać powrotnego przybycia drona i postanowiły sprawdzić co się z nim dzieje.\n\n- Proponuję, żeby Kukiełka stacjonowała w biurze detektywistycznym. Mamy tu ważne ślady, trzeba ich pilnować. \n\n- Okey. A Apetyt będzie zwiadowcą. Weźmiemy prowiant i może parasol. – zaproponował Igor.\n\n- Parasol? W akcji parasol? Musimy mieć kurtki nieprzemakalne.\n\n- A oprócz kurtek parasol. Przyda się dla niepoznaki i… to całkiem niezły spadochron! – Olga wywróciła oczami, westchnęła i machnęła ręką. Wzięła parasol odwrócony – tak dla niepoznaki 😊\n\nByło już popołudnie. Trzeba się było spieszyć, żeby wrócić szybko do domu. Po uzgodnieniach z rodzicami mieli wrócić do domu przed zmierzchem. Oby to było możliwe!",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 42,
+            "page_number": 29,
+            "content": "- Coś długo tam Biedronka zabawiła… - Olga zamyśliła się – Mam nadzieję, że wszystko w porządku…\n\n- Przyśpieszmy kroku. – zadecydował Igor i jakby sam sobie poradził – przyspieszył. Olga za nim. Apetyt ich wyprzedził, bo przecież był kwalifikowanym genetycznie zwiadowcą. Nos miał nie od parady!\n\nKiedy dotarli do krzewów porastających stare mury fortów zaczęli się skradać i rozglądać bacznie na wszystkie strony. \n\n- Namierz go, proszę, na GPS-ie… - szepnęła Olga do Igora.\n\n- Telefon mi się rozładował…",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 43,
+            "page_number": 30,
+            "content": "- Akurat teraz… - jęknęła rozczarowana Olga. Poklepała się po kieszeni… Kobiety! W kieszeni kurtki Olgi od zawsze tkwił Power Bank. – Proszę… - podała go Igorowi, a ten z rozpływającym spojrzeniem wdzięczności podłączył telefon do baterii. Masz coś jeszcze w kieszeniach? – Zapytał zaciekawiony, bo przecież takie skarby w czeluściach kieszeni mogą być bardzo inspirujące w trakcie wyprawy.\n\n- Jak będzie coś potrzeba to się znajdzie… - odpowiedziała dyplomatycznie dziewczynka – z tych czasów, z tamtych czasów… - Chyba potrzeba od razu się pojawiła, ponieważ wyciągnęła z kieszeni latarkę ze światłem laserowym i rozproszonym. Laserowe, wiadomo, kocia zabawa, ale przydać się też może w innych wypadkach. Rozproszone przydało się teraz, w sytuacji, w której trzeba było przedrzeć się przez gęste krzewy.",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 44,
+            "page_number": 31,
+            "content": "- Z tych czasów mamy elektronikę, a co mamy z tamtych czasów? – Igora to zaciekawiło.\n\n-  Siebie! A poza tym niebo, słońce, zieleń, całą przyrodę ożywioną i nieożywioną… no, może przesadziłam, nie całą… - zasmuciła się Olga.\n\n- No, i smoka! – ucieszył się Igor.",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 45,
+            "page_number": 32,
+            "content": "- Mam nadzieję, że to my mamy smoka, a nie on nas… - Olga dorzuciła mały kamyczek do tego ogródka marzeń, ale grozą nie powiało, bo Igor się nie wystraszył, a Apetyt tym bardziej. Jakoś nie martwił się tym, że będzie drugi brzuch rywalizował do jego miski. Miał zaufanie do swojego przyjaciela i wierzył, że smok dostanie swój osobisty przydział przysmaków. Gdyby jednak coś się w tej materii zmieniło, to nie ma sprawy, nie jest psem ogrodnika, tylko informatyka. To już są inne czasy…\n\n- „Mamy” w sensie przyjaźni. Mamy siebie nawzajem. To są piękne relacje… Dlatego, ani smok nie boi się nas, ani my smoka… - wyjaśnił dojrzale Igor.",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 46,
+            "page_number": 33,
+            "content": "Zbliżali się do fortów. Apetyt zaczął machać ogonem, nos zbliżył do ziemi, jakby rozpoczął już tropienie. Może nawet złapał trop. - Cicho Apetyt. – Igor wydał psu komendę przyciszonym głosem. Przykucnęli chowając się za krzakiem. Zza gałęzi obserwowali teren. Na szczęście fosa nie była zalana wodą, bo jak wiemy, to już są inne czasy i w fosie są jedynie zwalone stare drzewa. Takie są przepisy konserwatorskie. Nie wolno z fortu brać starych drzew, mają sobie tu próchnieć. Próchnieją więc i są domem dla wielu rzadkich owadów, np. biegaczy czy jelonków. Owady te rozwijają się przez kilka lat w spróchniałym drewnie. ",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 47,
+            "page_number": 34,
+            "content": "Drużyna poszukiwawcza przesunęła się powolutku do przodu. - Chyba coś tam się świeci.- O! Pada… - zasmuciła się Olga.- Teraz tobie bateria pada?- Deszcz pada. Nie czujesz?- Mam przecież szyszak. Nie czuję. Nawet nie słyszę, bo szyszak nie jest z metalu… - uśmiechnął się Igor do swojego żarciku.- To jak jesteś taki rycerz, to może dasz mi ten szyszak?- Szyszaka się nie pożycza. Przecież tak się można zarazić chorobami skórnymi i tak dalej. Ale mam twoją czapkę. Dzisiaj rycerze są przewidujący. – Igor zanurzył rękę w plecaku i wyciągnął z niej czapkę Olgi. – Mam też płaszcze foliowe przeciwdeszczowe. Minimum wagi, maksimum korzyści.- Programujesz i prognozujesz. Masz wyobraźnię.- No, i mamy parasol… na wszelki wypadek…- Patrz! Są. Rozpalili sobie ognisko? - Nie. To jakaś stara kuchnia polowa… A to mają głowy nie od parady… Co oni tam robią? Bronka zdrowa? – Igor obserwował smoka i drona przez lornetkę, a Olga niecierpliwie dopytywała.- Chodźmy tam. Sama zobaczysz. – pierwszy pobiegł Apetyt. Merdał wesoło ogonem i witał Bronkę. Jak już ją przywitał odwrócił się w stronę smoka i stał uśmiechnięty, jakby oczekiwał przedstawienia ich sobie nawzajem. - Apetyt to jest smok… - Igor popatrzył na smoka pytająco. Nie znał imienia smoka. Smok sam się więc przedstawił:- Jestem Smok. Po prostu Smok.Igor podszedł uradowany do Smoka, wyciągnął dłoń: - Jestem Igor. Rycerz Igor.- A ja Olga. Tak jak polska noblistka. – zarumieniła się Olga.- A to jest Apetyt. Bronkę już poznałeś. - Tak, tak… Znakomicie zaprogramowana… Znakomicie… Ogrywa mnie w szachy…- Dziękuję. – Igor był bardzo z siebie dumny. – To silnik szachowy całkowicie stworzony przeze mnie.- Nie całkowicie. Byłam prototypem… - wtrąciła się Olga.- Tak, tak, to prawda. Przy programowaniu wzorowałem się na partiach wygranych przez Olgę.- Widzę, że nie tylko z Bronką będę przegrywał… - zasmucił się Smok.- Tylko. Zanim Bronka będzie miała wgrany nowy silnik, ja cię podszkolę z nowych założeń strategicznych. - Dziękuję Królewno… to znaczy…eeee… Olgo.- W sumie możesz do mnie mówić „królewno”. Może to i są inne czasy, ale podobno wyobraźnia dziecięca jest dla ciebie źródłem życia. Wyobrażę sobie, że jestem królewną.- A ja twoim rycerzem! – zgłosił się Igor do roli, w którą wcielał się już od pewnego czasu. - Niestety, jest już późno. Dzisiaj musimy wracać, bo umówiliśmy się tak z rodzicami. - powiedziała rozsądnie królewna Olga – mamy tu jeszcze trochę prowiantu dla was. Bawcie się dobrze. Dołączymy do was jutro. A w wakacje, kto wie, może wybierzemy się razem na wielką wyprawę?- I to jest strategia! – zawołał radośnie rycerz Igor – wyprawa ze Smokiem! W realu!",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 48,
+            "page_number": 35,
+            "content": "Olga, Igor i Apetyt wrócili w umówionym z rodzicami czasie. Niestety na miejscu spotkała ich niespodzianka. Okazało się, ze Kukiełka poszła własną drogą i wygląda na to, że w siną dal. \n\n- Powiedzmy sobie szczerze, to nie jest kot wychodzący. Mamy problem. Kukiełka nie umie się poruszać samodzielnie w terenie. \n\n- Jak wyszła, to chyba umie… - zauważył nieśmiało Igor.\n\n- Igor! Ona wyszła nieświadoma co jest na zewnątrz! Ona myśli, że wszędzie jest dom… Napiszę ogłoszenie, że poszukiwany jest kot biały, puchaty… Nagroda wartości nowego kota… Wiem, że to straszne, ale to już są inne czasy… - zasmuciła się, bo miała na myśli chciwość i znieczulicę… - Na szczęście mam w skarbonce tyle. Po prostu ją wykupię.",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 49,
+            "page_number": 36,
+            "content": "- Olga przyczyniasz się do rozprzestrzeniania występków! Gdyby ktoś oddał Ci ją za pieniądze to byłoby to zwyczajne porwanie i okup! – Olga uroniła łzę. \n\n– Mam inne wyjście? Ja ją kocham…\n\nKukiełka zaginęła.\n\nDom wydawał się nagle większy, cichszy, zbyt pusty jak na swój metraż. Olga chodziła z pokoju do pokoju, a echo jej kroków odbijało się od ścian, jakby szukało towarzystwa. Nawet Apetyt nie szczekał. Tylko siadał pod drzwiami balkonowymi i patrzył w dal. Czasem coś niuchał. Czasem tylko wzdychał.\n\n– Ona nie miała pojęcia, co to znaczy na zewnątrz… – Olga powtarzała z niepokojem. – Wystarczyło zostawić na chwilę uchylone drzwi balkonowe… A ja… ja tylko chciałam przewietrzyć…",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 50,
+            "page_number": 37,
+            "content": "– Ucieczka nie była jej stylem. To musiało być coś więcej – analizował Igor. – Może instynkt. Może jakiś impuls. Albo... może ją coś zawołało?\n\nOlga poderwała się.\n\n– Zawołało?\n\n– W bajkach to się zdarza. Może usłyszała jakiś dźwięk, poczuła zapach… Coś, co przypomniało jej coś z przeszłości. Albo przyszłości.\n\nOlga nie miała siły na filozofię. Miała siłę tylko na działanie.\n\nZaczęło się szukanie.\n\nNajpierw klasycznie – ogłoszenia: „Zaginęła biała kotka. Puchata. Prawdopodobnie zdezorientowana. Reaguje na imię Kukiełka. Nagroda uczciwa.” Rozwiesili je na przystankach, słupach i tablicach ogłoszeń. Nawet u weterynarza.\n\nPotem ruszyli w teren – z Apetytem jako przewodnikiem.",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 51,
+            "page_number": 38,
+            "content": "Nos przy ziemi, ogon na baczność, trop – potem znikający, potem znowu trop. Przeszli pół osiedla, park, całą okolicę… Zbliżało się południe, ale nie przerywali. Dopiero gdy Olga zaczęła przysypiać w marszu, Igor zdecydował:\n\n– Dziś wracamy. Jutro zaczynamy od nowa. Ale... z pomocą.\n\nChłopiec i odwaga\n\nW samym sercu gwarnego miasta, gdzie światła migają wesoło nawet w pochmurne dni, chodziła sobie kotka. Nie była to zwykła kotka. Miała szal w kwiaty, okulary przeciwsłoneczne (nawet w deszcz) i nazywała się Kocica w Szpilkach. Nikt nie wiedział, skąd się wzięła, ale wszyscy czuli, że pojawia się dokładnie tam, gdzie trzeba.",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 52,
+            "page_number": 39,
+            "content": "Tego dnia usłyszała płacz i szamotaninę w wąskiej alejce. Skręciła szybko i zobaczyła chłopca, który właśnie wyrwał się grupce chuliganów. Jeden z nich próbował zabrać mu plecak.\n\n– Ej, wy! – zawołała Kocica w Szpilkach. Jej głos, choć koci, miał w sobie coś, co sprawiało, że nawet dorosły człowiek się zatrzymywał. – Odłóż to i znikajcie, zanim policzę do trzech... albo do siedmiu  (bo siedem brzmi groźniej).\n\nChuligani uciekli, a chłopiec stał roztrzęsiony. \n\n– Co mam teraz zrobić? – spytał. \n\n– Zadzwonić na policję – odparła Kocica spokojnie. – Pamiętaj, zgłaszanie przemocy to nie donoszenie. To odwaga.",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 53,
+            "page_number": 40,
+            "content": "Chłopiec kliknął w cyferki…1…1…2.... Kotka siedziała przy nim. Razem czekali na przyjazd radiowozu. Wyskoki policjant zasalutował im, wyciągnął policyjną odznakę, przedstawił się. Szybka wymiana informacji. Policjanci postanowili, że pojadą wszyscy na komisariat w celu spisania protokołu. Przejazd radiowozem był fantastyczny. Koguta nie włączali, ale policjantka siedząca na miejscy pasażera opowiedziała im jak i kiedy się go włącza. To poważny sygnał, a nie żadna tam zabawa. \n\nDotarli na ,miejsce. Kocica na Szpilkach uczestniczyła w rozmowie z policjantami, siedząc na biurku jak najpoważniejszy świadek. \n\n– Dobrze zrobiłeś – powiedziała do Pawła – Odwaga to nie walka, to działanie, gdy trzeba.\n\nRozmowa o pewności siebie",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 54,
+            "page_number": 41,
+            "content": "Kocica na Szpilkach wyszła z komisariatu, przeciągnęła się i ruszyła w stronę szkoły. Nie chciała za bardzo stukać i przyciągać wzrok przechodniów, więc wskoczyła do różowego tramwaju numer 7. Jej celem nie był sklep z tuńczykiem, ale pewna ulica o nazwie Wiśniowa, gdzie stała szkoła pełna dzieci, z których nie każde miało się z kim śmiać po lekcjach.\n\nTam, na rogu, zobaczyła dziewczynkę. Szła sama, z głową spuszczoną. Za nią wesoła grupa dzieci śmiała się i biegła razem.\n\nKocica podeszła do dziewczynki cicho. \n\n– Hej, skarbie, gdzie twoje skrzydła? \n\n– Jakie skrzydła? – spytała zaskoczona dziewczynka. \n\n– Te, które pozwalają ci iść z podniesioną głową. - Dziewczynka westchnęła. ",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 55,
+            "page_number": 42,
+            "content": "– Nikt mnie nie lubi. Nikt mnie nie zauważa.\n\n – Może jeszcze nie zauważa? – uśmiechnęła się filuternie kotka. - Żeby ktoś cię zauważył, musisz sama siebie najpierw zobaczyć.\n\nUsiadły razem na ławce, a Kocica w Szpilkach mówiła o tym, że samotność to nie klątwa.\n\n – To stan przejściowy. Czasem trzeba trochę odwagi, żeby powiedzieć: \"Hej, mogę iść z wami?\" Czasem trzeba zaryzykować.\n\nDziewczynka uśmiechnęła się słabo. \n\n– Spróbuję jutro. \n\n– W porządku. A ja będę w pobliżu, wiesz, na wszelki wypadek.\n\nDziewczynka i lustro w oczach kota\n\nKocica kroczyła w stronę parku i zobaczyła zapłakaną dziewczynkę siedzącą na huśtawce. ",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 56,
+            "page_number": 43,
+            "content": "Z nosa zsuwały się jej okulary, a palce nerwowo bawiły się końcem rękawa. Właśnie przed chwilą Basia odkryła, że koleżanka z klasy zablokowała ją w mediach społecznościowych. \"Bo jesteś brzydka, gruba i w ogóle. Nie nadajesz się do gry. Nie wpychaj się, bo przez ciebie przegramy.\" - przeczytała w wiadomości. Basia poczuła, jakby ktoś przycisnął jej serce ciężkim kamieniem.\n\n– Co się stało, młoda damo? – zapytała Kocica. \n\n– Nikt nie chce mnie do drużyny. Mówią, że jestem za gruba. I ja wiem, że tak jest.",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 57,
+            "page_number": 44,
+            "content": "Kocia przyjaciółka dzieci usiadła naprzeciwko Basi. Nagle… trzask! Huśtawka zamieniła się w portal do... zaczarowanego miasta. Wszystko było tam ogromne i kolorowe. Ludzie porozumiewali się dźwiękami jak ptaki, a domy miały skrzydła. Tam, na Placu Odważnych, Basia stanęła twarzą w twarz z ogromnym lustrem, które pokazywało nie to, jak wyglądasz, ale jak się czujesz.\n\n– Co widzisz? – spytała Kocica. – Widzę kogoś, kto jest smutny... ale chciałby być silny.",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 58,
+            "page_number": 45,
+            "content": "– Więc jesteś na dobrej drodze – odparła kotka. – Odwaga to nie brak strachu. To decyzja, że coś innego jest ważniejsze niż strach. Ja widzę kogoś z niesamowitym uśmiechem i oczami, które świecą jak gwiazdy. Wiesz co? Ktoś ci wmówił, że twoja wartość zależy od rozmiaru. Ale twoja wartość jest w tym, co robisz i co czujesz.\n\n– Ale nie gram dobrze w piłkę... \n\n– To może to nie piłka jest problemem, tylko wybór gry. Może jesteś stworzona do pływania, tańca albo... trenowania innych?\n\nDziewczynka się zamyśliła. \n\n– Nigdy o tym nie myślałam. \n\n– No to czas zacząć – mruknęła Kocica z szelmowskim uśmiechem. – A tymczasem powiedz to: \"Mam prawo czuć się dobrze we własnej skórze.\"",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 59,
+            "page_number": 46,
+            "content": "Dziewczynka powtórzyła to. Najpierw cicho. Potem głośniej. \n\n- Mam prawo czuć się dobrze we własnej skórze… Mam prawo czuć się dobrze we własnej skórze. Mam prawo czuć się dobrze we własnej skórze. – Uśmiechnęły się do się do siebie. Basia zauważyła, że przecież koty zachowują się zwykle inaczej niż Kocica na szpilkach. Jej zachowanie zależy od tego co chce ona robić, a nie od tego jak wygląda. \n\nChłopiec z własnym zdaniem\n\nNa koniec dnia Kocica w Szpilkach poszła do centrum handlowego. Tam zauważyła chłopca idącego z rodzicami. Ci kłócili się, czy kupić mu zieloną czy niebieską kurtkę. Chłopiec tylko patrzył w podłogę.",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 60,
+            "page_number": 47,
+            "content": "– Ale my wiemy lepiej, co dobre! – mówiła mama. – On i tak nie wie, co chce – dodał tata.\n\nKocica w Szpilkach podbiegła, skoczyła do wózka na zakupy i... zaczęła wyjmować produkty. Puszkę groszku podrzuciła pod nogi taty, który aż podskoczył. Wtedy Kocica wskoczyła na półkę z kurtkami i strąciła czerwoną. Chłopiec ją złapał.\n\n– Ta mi się podoba – powiedział cicho.\n\nRodzice spojrzeli na siebie, potem na kota, potem na chłopca. – Naprawdę? – zapytała mama. – Tak. I chciałbym sam wybrać też buty.",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 61,
+            "page_number": 48,
+            "content": "Kuba szedł najpierw do przymierzalni, żeby przymierzyć kurtkę. Kocica wślizgnęła się za nim. Zatrzepotała kotara i nagle trafili do Krainy Echo, gdzie każde słowo wypowiedziane głośno odbijało się echem tysiąc razy. Kuba stanął na szczycie wzgórza i powiedział: \"Nie jestem nikim. Jestem wyjątkowy.\" Echo powtórzyło: \"Wyjątkowy, wyjątkowy, wyjątkowy...\" Kuba się uśmiechnął. Po raz pierwszy jego własne słowa go wzmocniły. – Widzisz? – mrugnęła Kocica. – Głos jest jak miecz. Używaj go mądrze, ale nie chowaj.\n\nKocica mrugnęła i zniknęła między sklepowymi regałami. Za nią zostały tylko słowa:\n\n– Dziecko to człowiek nie ryba. Dzieci mają głos. Każdy człowiek, duży i mały, potrzebuje przestrzeni, by być sobą.",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 62,
+            "page_number": 49,
+            "content": "Co było dalej.\n\nWieczorem, w herbaciarni o nazwie \"U Szalonego Lwa\", Kocica zebrała Basię, Kubę, Pawła i jeszcze kilkoro dzieci, które spotkała po drodze. Każde miało swoją historię, swój smutek i swoją siłę. – Dziś zaczynacie coś nowego – powiedziała. – Klub Kocicy w Szpilkach. Waszym zadaniem jest dodać odwagi innym. Tak jak ja dodałam wam. \n\n– Ale jak? – spytała Basia. \n\n– Uśmiechem, słowem, pomocą. I pamiętajcie – żadna szpilka nie da tyle mocy, co odwaga w sercu.",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 63,
+            "page_number": 50,
+            "content": "Kiedy dzieci wróciły do szkoły i do swoich domów, coś się zmieniło. Basia nie bała się powiedzieć koleżance: \"Nie muszę się zmieniać, żeby być lubiana\". A Kuba, gdy znów ktoś go poniżył, zapytał spokojnie: \"A co tak naprawdę cię śmieszy – ja, czy to, że boisz się być inny?\" Dzieci zaczęły mówić, co czują. Powstawały nowe przyjaźnie, a śmiech dookoła nich nie był już złośliwy, ale prawdziwy.\n\nCo porabiają koty, gdy nikt ich nie obserwuje…",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 64,
+            "page_number": 51,
+            "content": "Jeszcze wczorajszej nocy Kukiełka znalazła w Internecie program do druku 3D pięknych szafirowych szpilek. To już są inne czasy! Moda poszła do przodu. Kocica musi założyć efektowne szpilki, szafirowe pod kolor oczu, kapelusz, a jakże! Będzie biały z błękitnymi kwiatami. Do tego torebeczka z eko materiału, może len… Niech będzie zapinana broszką z szafirowymi szkiełkami. Bosko.\n\n- Pazury… pazury sobie przykleję… - pomyślała Kukiełka i jak tylko spod drukarki wysunęła się druga szpilka jednym kliknieciem kociej łapy spod drukarki zaczęły wychodzić ozdobne hybrydy do naklejania na kocie pazury. ",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 65,
+            "page_number": 52,
+            "content": "Kiedy Kukiełka była gotowa uchyliła lekko lufcik i prysnęła jednym susem na zieloną trawkę. „Udam się na kocimiętkę…” – zamruczała rozmarzona i tyle ją było widać. Przynajmniej na razie.\n\nKocica stukała szpilkami w bruk chodników. Może usiadła na dachu piekarni, może spała pod ławką w parku? Gdziekolwiek była, dzieci, które ją spotkały, już nigdy nie zapomniały, że czasem wystarczy jedna rozmowa, by zmienić czyjeś życie. Albo jedno ciepłe spojrzenie... kocich oczu. Trochę to wstyd dla niektórych dorosłych, gdy nie potrafią być empatyczni wobec dziecka, gdy nie potrafią go zrozumieć. Dopiero potrzeba kota… kociej czułości, kociej delikatności, kociego taktu i kociej mądrości…\n\nPomoc w odnalezieniu Kukiełki przyszła ze strony, której się nie spodziewali.",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 66,
+            "page_number": 53,
+            "content": "Tymczasem Kocica w Szpilkach dotarła do fortu. Po filiżance kocimiętki tak po prostu postanowiła się przejść. Stuk, stuk, stuk – jej szpilki rozbrzmiewały na kamieniach niczym werble przed koncertem.\n\nPrzystanęła przy fosie. Uniosła głowę i spojrzała w niebo. Deszcz siąpił cicho, ale jej to nie przeszkadzało. Miała styl. I miała humor. Taki... przekorny.\n\nWtem zza krzewów wynurzył się... ogon. Potem łuski. Potem nos wielki jak parowóz. A na końcu oczy – ogromne, zamyślone i całkiem niegroźne.\n\n– Och. Dzień dobry, Pani – powiedział Smok z Fortu, zaskoczony i zaintrygowany.\n\nKocica w Szpilkach nie wyglądała na przestraszoną. W końcu nie bez powodu nosiła się jak diva i detektyw w jednym.",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 67,
+            "page_number": 54,
+            "content": "– Szukałam tylko sensu życia… albo ciekawego towarzystwa na popołudnie. Które z tych dwóch reprezentujesz? – spytała.\n\nSmok zamrugał. Zawahał się. A potem... parsknął śmiechem takim, że liście zadrżały na drzewach.\n\n– Towarzystwa, zdecydowanie. Sens życia zostawmy na później. Wolisz szachy czy filozofię?\n\n– Zależy od stanu moich pazurów. – Kocica przeciągnęła się leniwie. – Ale mogę zagrać partię, jeśli masz dobrą herbatę.\n\nUsiedli pod zadaszeniem kuchni polowej. Kocica spojrzała na figury jak na wybieg mody.\n\n– Czy ta wieża mogłaby być bardziej gotycka?\n\n– Dostosuję się. – Smok uśmiechnął się i przemienił figurę w gotycką miniaturę zamku.\n\nPierwsze posunięcie wykonała Kocica. Pazurem przesunęła pionek dwa pola do przodu.",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 68,
+            "page_number": 55,
+            "content": "Partia trwała do wieczora. Rozmowy – znacznie dłużej. I nikt już się nie dziwił, że Smok ma przyjaciół. Ani że koty w szpilkach potrafią odnaleźć drogę do każdego serca – nawet tego ziejącego dymem.\n\nTymczasem do fortu przybiegła Olga, Igor i Apetyt.\n\n– Szukacie kotki? – zapytał głęboki, znajomy głos. Z cienia wysunął się Smok.\n\n– Tak… – Olga spojrzała bezradnie. – Mała, biała, zupełnie nieprzystosowana.\n\n– Biała? Z niebieskimi oczami? Długa sierść?\n\n– Tak!\n\n– Widziałem taką. Dziś rano. Biegła wzdłuż fosy, potem zniknęła w lesie za fortem. Ale… dziwne… miała na grzbiecie… jakby… naszyjnik?\n\nOlga i Igor spojrzeli po sobie.",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 69,
+            "page_number": 56,
+            "content": "– To obroża z numerem i lokalizatorem! – Olga od razu wyjąła telefon. – Przecież miała nowy chip! Jak mogłam o tym zapomnieć?!\n\nWłączyli aplikację. Kółeczko – długo się ładowało. Wreszcie – błyśnięcie. Lokalizacja.\n\n– JEST! – wrzasnęli oboje.\n\nLokalizator wskazywał starą oranżerię. Miejsce zapomniane przez ludzi, ale ukochane przez koty, jeże, wiewiórki i wszystkie stworzenia szukające ciszy i ciepła. Oranżeria była zamknięta, ale w szklanej ścianie brakowało jednej szyby.\n\nKukiełka leżała w środku na starej kanapie pokrytej mchem i porzuconym pledem. Obok niej – miska z mlekiem. I… szept. Szept, który dobiegał gdzieś z wnętrza murów oranżerii.\n\n– Czy… ona była tu wcześniej? – szepnął Igor.",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 70,
+            "page_number": 57,
+            "content": "Olga weszła powoli do środka. Kukiełka podniosła głowę, zamruczała cichutko, spojrzała… i wróciła do leżenia. Zupełnie jakby chciała powiedzieć: „A co, myśleliście, że zginę? Przecież to są inne czasy.”\n\nZabierając ją z powrotem do domu, Olga spojrzała przez ramię.\n\n– Dziękujemy, Smoku. – powiedziała w kierunku ciemności.\n\nA Smok? Nie odpowiedział. Ale z daleka zamrugało jedno duże, jasne oko.\n\nEpilog: Oczami Kukiełki\n\nLeżałam na miękkim pledzie. Pachniał kurzem, mchami i… czymś jeszcze. Czymś starym jak świat, a jednocześnie zupełnie nowym. Taka jest właśnie pamięć kota – nie liczy czasu w sekundach, tylko w miejscach, zapachach, temperaturze powietrza. I w dźwiękach – tych niewypowiedzianych, które słyszymy tylko my, koty.",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 71,
+            "page_number": 58,
+            "content": "Moja wycieczka to było wezwanie.\n\nNajpierw cichy dźwięk w sercu. Potem powiew. Potem drzwi balkonowe uchylone na palec. A za nimi świat, który znałam z marzeń sennych – tam, gdzie ściany nie istnieją, a wszystkie dachy są moje.\n\nNie miałam planu. Koty nigdy nie mają planów – mają intencje.\n\nFort pachniał historią. Wspomnieniami. Mchem i rdzą. Ale też ciepłem… i herbatą. Może ktoś tam mieszkał. Może coś. W oranżerii było cicho. Tak cicho, że słyszałam jak rosną rośliny. W rogu ktoś zostawił mleko. Nikt nie wołał. Ale ktoś wiedział, że przyjdę.\n\nWiedział też Smok.\n\nNie baliśmy się siebie. My, stworzenia z pogranicza baśni i rzeczywistości, wyczuwamy się od razu. Smok pochylił głowę i spojrzał na mnie z czułością, jakby znał mnie od zawsze.",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        },
+        {
+            "id": 72,
+            "page_number": 59,
+            "content": "– Ty jesteś kotem z legendy – powiedział. – Tą, która przychodzi wtedy, gdy dzieci potrzebują nadziei.\n\nMrugnęłam powoli. On rozumiał. Smok to nie tylko płomienie – to też pamięć. I opowieść. Tak samo jak kot.\n\nKiedy przyszli Olga i Igor, wiedziałam, że pora wracać. Ale nie na zawsze. Tylko na chwilę. Bo znowu ktoś będzie potrzebował mnie w innej opowieści. Może jutro. Może za sto lat.\n\nA teraz? Wracam z nimi. Z Apetytem, który dzielnie tropił. Z Olgą, która płakała. I z Igorem, który próbował być rycerzem, choć miał tylko parasol i szyszak z dzianiny.\n\nWracam, bo kocham. A koty – choć nikt w to nie wierzy – są mistrzami miłości.\n\n",
+            "video_url": null,
+            "created_at": "2025-05-20T22:34:57.000000Z",
+            "updated_at": "2025-05-20T22:34:57.000000Z"
+        }
+    ]
+}
