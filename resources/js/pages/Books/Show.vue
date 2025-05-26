@@ -340,20 +340,15 @@ const navigateToPage = async (pageNumber) => {
             pageNumber += 1;
             debug.log('Adjusted page number for desktop:', pageNumber);
         }
-        if (pageNumber <= 0) {
-            pageNumber = 1;
-            debug.log('Adjusted page number to minimum:', pageNumber);
-        }
-    } else {
-        // Mobile navigation logic (single page)
-        if (pageNumber <= 0) {
-            pageNumber = 1;
-            debug.log('Adjusted page number to minimum:', pageNumber);
-        }
-        if (pageNumber > props.book.total_pages) {
-            pageNumber = props.book.total_pages;
-            debug.log('Adjusted page number to maximum:', pageNumber);
-        }
+    }
+
+    if (pageNumber <= 0) {
+        pageNumber = 1;
+        debug.log('Adjusted page number to minimum:', pageNumber);
+    }
+    if (pageNumber > props.book.total_pages) {
+        pageNumber = props.book.total_pages;
+        debug.log('Adjusted page number to maximum:', pageNumber);
     }
 
     debug.log('Access check:', {
@@ -448,16 +443,9 @@ const navigateToPage = async (pageNumber) => {
     const currentIndex = props.book.pages.findIndex(p => p.page_number === pageNumber);
     currentPage.value = props.book.pages[currentIndex];
     
-    if (!isMobile) {
-        // Desktop: Set next and previous pages for two-page spread
-        nextPage.value = props.book.pages[currentIndex + 1] || null;
-        prevPage.value = props.book.pages[currentIndex - 1] || null;
-    } else {
-        // Mobile: Set next and previous pages for single-page view
-        nextPage.value = props.book.pages[currentIndex + 1] || null;
-        prevPage.value = props.book.pages[currentIndex - 1] || null;
-    }
-
+    nextPage.value = props.book.pages[currentIndex + 1] || null;
+    prevPage.value = props.book.pages[currentIndex - 1] || null;
+    
     debug.log('Navigation complete:', {
         currentPage: currentPage.value?.page_number,
         nextPage: nextPage.value?.page_number,
