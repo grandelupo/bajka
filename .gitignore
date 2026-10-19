@@ -22,3 +22,6 @@ yarn-error.log
 /.vscode
 /.zed
 book.txt
+
+# marketing lives in the private grandelupo/bajka-marketing repo
+/marketing
