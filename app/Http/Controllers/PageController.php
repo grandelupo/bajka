@@ -4,119 +4,48 @@ namespace App\Http\Controllers;
 
 use App\Models\Book;
 use App\Models\Page;
-use App\Models\Transaction;
-use Illuminate\Http\Request;
+use App\Support\BookReader;
+use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class PageController extends Controller
 {
-    public function show(Book $book, Page $page): Response
+    /**
+     * The reader. Opening a page never spends coins: a locked page is shown
+     * locked, and the reader decides on the page itself whether to unlock it.
+     */
+    public function show(Book $book, Page $page): Response|RedirectResponse
     {
-        // Ensure the page belongs to the book
-        if ($page->book_id !== $book->id) {
-            abort(404);
+        if ($current = config("books.replaced.{$book->id}")) {
+            return redirect()->route('pages.show', ['book' => $current, 'page' => $page->page_number]);
         }
 
         $user = auth()->user();
-        $freePages = 6;
-        $registeredFreePages = 11;
+        $reader = new BookReader($book, $user);
 
-        // Load all pages for the book
-        $book->load(['pages' => function ($query) {
-            $query->orderBy('page_number');
-        }]);
-
-        // Process video URLs to use local storage
-        $book->pages->each(function ($page) {
-            if ($page->video_url) {
-                // Extract filename from the video URL
-                $filename = basename($page->video_url);
-                // Update to use local storage path
-                $page->video_url = "/storage/videos/{$filename}";
-            }
-        });
-
-        // Get purchased page IDs
-        $purchasedPageIds = $user ? $user->transactions()
-            ->where('book_id', $book->id)
-            ->pluck('page_id')
-            ->toArray() : [];
-
-        // Check access for pages beyond free pages
-        if ($page->page_number > $freePages) {
-            if (!$user) {
-                return redirect()->route('login');
-            }
-
-            if ($page->page_number > $registeredFreePages) {
-                $hasPurchased = $user->transactions()
-                    ->where('book_id', $book->id)
-                    ->where('page_id', $page->id)
-                    ->exists();
-
-                if (!$hasPurchased) {
-                    if ($user->coins < $book->price_per_page) {
-                        return Inertia::render('Coins/Purchase', [
-                            'packages' => [
-                                [
-                                    'id' => 'basic',
-                                    'name' => 'Podstawowy pakiet',
-                                    'coins' => 100,
-                                    'price' => 20.00,
-                                ],
-                                [
-                                    'id' => 'standard',
-                                    'name' => 'Mała historia',
-                                    'coins' => 500,
-                                    'price' => 80.00,
-                                ],
-                                [
-                                    'id' => 'premium',
-                                    'name' => 'Wielka opowieść',
-                                    'coins' => 1000,
-                                    'price' => 145.00,
-                                ],
-                                [
-                                    'id' => 'ultimate',
-                                    'name' => 'Bajkowy świat',
-                                    'coins' => 2500,
-                                    'price' => 255.00,
-                                ],
-                            ],
-                            'stripeKey' => config('services.stripe.key'),
-                            'csrf_token' => csrf_token(),
-                            'redirectFrom' => [
-                                'book' => $book->id,
-                                'page' => $page->page_number,
-                            ],
-                        ]);
-                    }
-
-                    // Create transaction and deduct coins
-                    Transaction::create([
-                        'user_id' => $user->id,
-                        'book_id' => $book->id,
-                        'page_id' => $page->id,
-                        'coins_spent' => $book->price_per_page,
-                    ]);
-
-                    $user->decrement('coins', $book->price_per_page);
-                }
-            }
-        }
+        $pages = $book->pages()
+            ->orderBy('page_number')
+            ->get()
+            ->map(fn (Page $p) => $reader->present($p))
+            ->values();
 
         return Inertia::render('Books/Show', [
-            'book' => $book,
+            'book' => [
+                'id' => $book->id,
+                'title' => $book->title,
+                'description' => $book->description,
+                'total_pages' => $pages->count(),
+                'price_per_page' => $book->price_per_page,
+            ],
+            'pages' => $pages,
             'currentPageNumber' => $page->page_number,
             'accessConfig' => [
-                'freePages' => $freePages,
-                'registeredFreePages' => $registeredFreePages,
-                'purchasedPageIds' => $purchasedPageIds,
-                'isAuthenticated' => (bool)$user,
+                'freePages' => BookReader::FREE_PAGES,
+                'registeredFreePages' => BookReader::REGISTERED_FREE_PAGES,
+                'isAuthenticated' => (bool) $user,
             ],
-            'userCoins' => $user ? $user->coins : 0,
-            'csrf_token' => csrf_token(),
+            'userCoins' => $user?->coins ?? 0,
         ]);
     }
-} 
+}

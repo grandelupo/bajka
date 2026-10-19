@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 
 class GoogleController extends Controller
@@ -26,13 +27,13 @@ class GoogleController extends Controller
                     'name' => $googleUser->name,
                     'email' => $googleUser->email,
                     'avatar' => $googleUser->avatar,
-                    'password' => bcrypt(str_random(24)),
+                    'password' => bcrypt(Str::random(32)),
                 ]
             );
 
             Auth::login($user);
 
-            return redirect()->route('dashboard');
+            return redirect()->intended(route('dashboard', absolute: false));
         } catch (\Exception $e) {
             return redirect()->route('login')->with('error', 'Google authentication failed');
         }

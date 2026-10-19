@@ -18,6 +18,8 @@ class AuthenticatedSessionController extends Controller
      */
     public function create(Request $request): Response
     {
+        self::rememberReturn($request);
+
         return Inertia::render('auth/Login', [
             'canResetPassword' => Route::has('password.request'),
             'status' => $request->session()->get('status'),
@@ -47,5 +49,18 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerateToken();
 
         return redirect('/');
+    }
+
+    /**
+     * The reader links here with ?return=/books/…/pages/… so that signing in
+     * (or up) drops the reader back on the page they were reading.
+     */
+    public static function rememberReturn(Request $request): void
+    {
+        $return = $request->query('return');
+
+        if (is_string($return) && str_starts_with($return, '/') && ! str_starts_with($return, '//')) {
+            $request->session()->put('url.intended', $return);
+        }
     }
 }

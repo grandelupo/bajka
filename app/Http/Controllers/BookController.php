@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Book;
-use Illuminate\Http\Request;
+use App\Support\BookSummary;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -11,13 +11,10 @@ class BookController extends Controller
 {
     public function index(): Response
     {
-        $books = Book::with(['pages' => function ($query) {
-            $query->orderBy('page_number');
-        }])->get();
+        $user = auth()->user();
 
         return Inertia::render('Books/Index', [
-            'books' => $books,
+            'books' => Book::whereNotIn('id', array_keys(config('books.replaced', [])))->latest()->get()->map(fn (Book $book) => BookSummary::make($book, $user)),
         ]);
     }
-
-} 
+}

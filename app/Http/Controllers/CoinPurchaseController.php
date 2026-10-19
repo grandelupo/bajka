@@ -2,224 +2,204 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Book;
 use App\Models\CoinPurchase;
+use App\Models\Page;
 use App\Models\StripeCustomer;
+use App\Models\Transaction;
+use App\Models\User;
+use App\Support\BookReader;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
-use Stripe\Stripe;
 use Stripe\PaymentIntent;
-use App\Models\Book;
-use App\Models\Transaction;
+use Stripe\Stripe;
 
 class CoinPurchaseController extends Controller
 {
-    public function index(): Response
+    public static function packages(): array
     {
-        $packages = [
-            [
-                'id' => 'basic',
-                'name' => 'Podstawowy pakiet',
-                'coins' => 100,
-                'price' => 20.00,
-            ],
-            [
-                'id' => 'standard',
-                'name' => 'Mała historia',
-                'coins' => 500,
-                'price' => 80.00,
-            ],
-            [
-                'id' => 'premium',
-                'name' => 'Wielka opowieść',
-                'coins' => 1000,
-                'price' => 145.00,
-            ],
-            [
-                'id' => 'ultimate',
-                'name' => 'Bajkowy świat',
-                'coins' => 2500,
-                'price' => 255.00,
-            ],
-        ];
-
-        return Inertia::render('Coins/Purchase', [
-            'packages' => $packages,
-            'stripeKey' => config('services.stripe.key'),
-            'csrf_token' => csrf_token(),
-        ]);
+        return collect(config('coins.packages'))
+            ->map(fn (array $package, string $id) => ['id' => $id, ...$package])
+            ->values()
+            ->all();
     }
 
-    public function store(Request $request)
+    public function index(Request $request): Response
     {
-        $request->validate([
-            'package_id' => 'required|string',
-            'payment_intent_id' => 'required|string',
+        // Where to send the reader once the coins land, e.g. back to their page.
+        $return = $request->query('return');
+        if (is_string($return) && str_starts_with($return, '/') && ! str_starts_with($return, '//')) {
+            $request->session()->put('coins.return_to', $return);
+        }
+
+        return Inertia::render('Coins/Purchase', [
+            'packages' => self::packages(),
+            'stripeKey' => config('services.stripe.key'),
+            'returnTo' => $request->session()->get('coins.return_to'),
+            'pricePerPage' => (int) (Book::query()->value('price_per_page') ?? 5),
         ]);
-
-        $packages = [
-            'basic' => ['coins' => 100, 'price' => 5.00],
-            'standard' => ['coins' => 500, 'price' => 20.00],
-            'premium' => ['coins' => 1000, 'price' => 35.00],
-            'ultimate' => ['coins' => 2500, 'price' => 75.00],
-        ];
-
-        $package = $packages[$request->package_id] ?? null;
-
-        if (!$package) {
-            return back()->with('error', 'Invalid package selected');
-        }
-
-        Stripe::setApiKey(config('services.stripe.secret'));
-
-        try {
-            $paymentIntent = PaymentIntent::retrieve($request->payment_intent_id);
-
-            if ($paymentIntent->status !== 'succeeded') {
-                return back()->with('error', 'Payment not successful');
-            }
-
-            $user = auth()->user();
-
-            // Create or update Stripe customer
-            $stripeCustomer = StripeCustomer::updateOrCreate(
-                ['user_id' => $user->id],
-                ['stripe_customer_id' => $paymentIntent->customer]
-            );
-
-            // Create coin purchase record
-            CoinPurchase::create([
-                'user_id' => $user->id,
-                'amount' => $package['coins'],
-                'price' => $package['price'],
-                'status' => 'completed',
-                'stripe_payment_id' => $paymentIntent->id,
-                'stripe_customer_id' => $paymentIntent->customer,
-            ]);
-
-            // Add coins to user's balance
-            $user->increment('coins', $package['coins']);
-
-            return redirect()->route('dashboard')
-                ->with('success', "Successfully purchased {$package['coins']} coins!");
-        } catch (\Exception $e) {
-            return back()->with('error', 'Payment processing failed');
-        }
     }
 
     public function history(): Response
     {
-        $purchases = auth()->user()->coinPurchases()
-            ->orderByDesc('created_at')
-            ->get();
+        $user = auth()->user();
 
         return Inertia::render('Coins/History', [
-            'purchases' => $purchases,
+            'purchases' => $user->coinPurchases()->latest()->get(),
+            'transactions' => $user->transactions()->with(['book:id,title', 'page:id,page_number'])->latest()->limit(100)->get(),
         ]);
     }
 
-    public function createPaymentIntent(Request $request)
+    public function createPaymentIntent(Request $request): JsonResponse
     {
-        $request->validate([
-            'package_id' => 'required|string',
-        ]);
+        $request->validate(['package_id' => 'required|string']);
 
-        $packages = [
-            'basic' => ['coins' => 100, 'price' => 5.00],
-            'standard' => ['coins' => 500, 'price' => 20.00],
-            'premium' => ['coins' => 1000, 'price' => 35.00],
-            'ultimate' => ['coins' => 2500, 'price' => 75.00],
-        ];
-
-        $package = $packages[$request->package_id] ?? null;
-
-        if (!$package) {
-            return response()->json(['message' => 'Invalid package selected'], 400);
+        $package = config("coins.packages.{$request->package_id}");
+        if (! $package) {
+            return response()->json(['message' => 'Nieznany pakiet'], 400);
         }
 
         Stripe::setApiKey(config('services.stripe.secret'));
 
         try {
             $paymentIntent = PaymentIntent::create([
-                'amount' => $package['price'] * 100, // Convert to cents
+                'amount' => (int) round($package['price'] * 100),
                 'currency' => 'pln',
-                'automatic_payment_methods' => [
-                    'enabled' => true,
-                ],
+                'automatic_payment_methods' => ['enabled' => true],
                 'metadata' => [
                     'package_id' => $request->package_id,
                     'coins' => $package['coins'],
+                    'user_id' => $request->user()->id,
                 ],
             ]);
 
-            return response()->json([
-                'clientSecret' => $paymentIntent->client_secret,
-            ]);
+            return response()->json(['clientSecret' => $paymentIntent->client_secret]);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to create payment intent'], 500);
+            report($e);
+
+            return response()->json(['message' => 'Nie udało się rozpocząć płatności'], 500);
         }
     }
 
-    public function purchasePage(Request $request)
+    /**
+     * Stripe sends the reader here after paying (and the page calls it
+     * directly when no redirect was needed). Coins are granted once per
+     * payment, from the package recorded on the intent itself.
+     */
+    public function confirm(Request $request): RedirectResponse
+    {
+        $intentId = (string) $request->query('payment_intent', '');
+        $returnTo = $request->session()->pull('coins.return_to') ?: route('dashboard', absolute: false);
+
+        if ($intentId === '') {
+            return redirect()->route('coins.purchase')->with('error', 'Brak informacji o płatności.');
+        }
+
+        Stripe::setApiKey(config('services.stripe.secret'));
+
+        try {
+            $intent = PaymentIntent::retrieve($intentId);
+        } catch (\Exception $e) {
+            report($e);
+
+            return redirect()->route('coins.purchase')->with('error', 'Nie udało się zweryfikować płatności.');
+        }
+
+        $user = $request->user();
+        $package = config('coins.packages.'.($intent->metadata['package_id'] ?? ''));
+
+        if ($intent->status !== 'succeeded' || ! $package || (int) ($intent->metadata['user_id'] ?? 0) !== $user->id) {
+            return redirect()->route('coins.purchase')->with('error', 'Płatność nie została zakończona.');
+        }
+
+        $credited = DB::transaction(function () use ($user, $intent, $package) {
+            User::whereKey($user->id)->lockForUpdate()->first();
+
+            if (CoinPurchase::where('stripe_payment_id', $intent->id)->exists()) {
+                return false;
+            }
+
+            if ($intent->customer) {
+                StripeCustomer::updateOrCreate(['user_id' => $user->id], ['stripe_customer_id' => $intent->customer]);
+            }
+
+            CoinPurchase::create([
+                'user_id' => $user->id,
+                'amount' => $package['coins'],
+                'price' => $intent->amount / 100,
+                'status' => 'completed',
+                'stripe_payment_id' => $intent->id,
+                'stripe_customer_id' => $intent->customer,
+            ]);
+
+            $user->increment('coins', $package['coins']);
+
+            return true;
+        });
+
+        return redirect($returnTo)->with(
+            'success',
+            $credited ? "Hurra! Dodaliśmy {$package['coins']} monet do Twojej sakiewki." : 'Te monety są już w Twojej sakiewce.'
+        );
+    }
+
+    /**
+     * Unlock pages with coins. Only pages not already owned are charged, and
+     * the unlocked pages come back so the reader can show them straight away.
+     */
+    public function purchasePage(Request $request): JsonResponse
     {
         $request->validate([
             'book_id' => 'required|exists:books,id',
-            'page_number' => 'required|integer|min:1',
-            'purchase_next' => 'boolean',
+            'page_numbers' => 'required|array|min:1|max:2',
+            'page_numbers.*' => 'integer|min:1',
         ]);
 
         $book = Book::findOrFail($request->book_id);
-        $page = $book->pages()->where('page_number', $request->page_number)->firstOrFail();
-        $user = auth()->user();
+        $user = $request->user();
 
-        // Calculate total cost
-        $totalCost = $book->price_per_page;
-        $pagesToPurchase = [$page];
+        $result = DB::transaction(function () use ($book, $user, $request) {
+            $user = User::whereKey($user->id)->lockForUpdate()->first();
+            $reader = new BookReader($book, $user);
 
-        // If we need to purchase the next page as well
-        if ($request->purchase_next) {
-            $nextPage = $book->pages()->where('page_number', $request->page_number + 1)->first();
-            if ($nextPage) {
-                $totalCost += $book->price_per_page;
-                $pagesToPurchase[] = $nextPage;
+            $pages = $book->pages()->whereIn('page_number', $request->page_numbers)->get();
+            $toBuy = $pages->filter(fn (Page $page) => ! $reader->canRead($page));
+            $cost = $toBuy->count() * $book->price_per_page;
+
+            if ($user->coins < $cost) {
+                return ['error' => 'Za mało monet', 'needed' => $cost, 'coins' => $user->coins];
             }
-        }
 
-        // Check if user has enough coins
-        if ($user->coins < $totalCost) {
-            return response()->json(['message' => 'Not enough coins'], 400);
-        }
-
-        $purchasedPageIds = [];
-
-        // Process each page
-        foreach ($pagesToPurchase as $pageToPurchase) {
-            // Check if page is already purchased
-            $hasPurchased = $user->transactions()
-                ->where('book_id', $book->id)
-                ->where('page_id', $pageToPurchase->id)
-                ->exists();
-
-            if (!$hasPurchased) {
-                // Create transaction and deduct coins
-                $transaction = Transaction::create([
+            foreach ($toBuy as $page) {
+                Transaction::create([
                     'user_id' => $user->id,
                     'book_id' => $book->id,
-                    'page_id' => $pageToPurchase->id,
+                    'page_id' => $page->id,
                     'coins_spent' => $book->price_per_page,
                 ]);
-
-                $purchasedPageIds[] = $pageToPurchase->id;
             }
+
+            if ($cost > 0) {
+                $user->decrement('coins', $cost);
+            }
+
+            $reader = new BookReader($book, $user);
+
+            return [
+                'pages' => $pages->map(fn (Page $page) => $reader->present($page))->values(),
+                'spent' => $cost,
+                'remaining_coins' => $user->coins,
+            ];
+        });
+
+        if (isset($result['error'])) {
+            return response()->json(['message' => $result['error'], ...$result], 402);
         }
 
-        // Deduct total coins
-        $user->decrement('coins', $totalCost);
-
-        return response()->json([
-            'message' => 'Page(s) purchased successfully',
-            'purchased_page_ids' => $purchasedPageIds,
-            'remaining_coins' => $user->coins,
-        ]);
+        return response()->json($result);
     }
-} 
+}
