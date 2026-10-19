@@ -1,0 +1,499 @@
+/* ── Tokens ─────────────────────────────────────────────────────────────
+   Sampled from the book's own art: the night-green of the old fort, the
+   gold of its fireflies, Olga's rose-and-sky hair, the dragon's ember, and
+   the cream of a well-thumbed page. */
+:root {
+    --cream: #fbf4e6;
+    --paper: #fffaf0;
+    --sand: #f2e7d0;
+    --ink: #1d2a2c;
+    --ink-soft: #56625f;
+    --mute: #8a8f86;
+    --night: #15322f;
+    --night-deep: #0b1c1d;
+    --moss: #2f5d4a;
+    --gold: #f2b84b;
+    --gold-soft: #fbe3a4;
+    --ember: #e8643a;
+    --rose: #ec8fae;
+    --sky: #3d6fb6;
+    --lilac: #9b8ad6;
+    --line: rgb(29 42 44 / 0.12);
+    --line-strong: rgb(29 42 44 / 0.22);
+    --line-light: rgb(251 244 230 / 0.22);
+
+    --font-display: 'Fraunces', ui-serif, Georgia, serif;
+    --font-body: 'Nunito', ui-sans-serif, system-ui, sans-serif;
+
+    --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+    --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    --gutter: clamp(1.25rem, 4vw, 4rem);
+    --section: clamp(5rem, 11vw, 10rem);
+    --max: 84rem;
+    --header-h: 4.5rem;
+
+    --shadow-soft: 0 1px 2px rgb(29 42 44 / 0.06), 0 8px 24px -8px rgb(29 42 44 / 0.18);
+    --shadow-lift: 0 2px 4px rgb(29 42 44 / 0.06), 0 22px 48px -18px rgb(29 42 44 / 0.35);
+}
+
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: var(--header-h);
+    background: var(--cream);
+}
+
+body {
+    font-family: var(--font-body);
+    color: var(--ink);
+    background: var(--cream);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: clip;
+}
+
+::selection {
+    background: var(--gold-soft);
+    color: var(--ink);
+}
+
+:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 3px;
+}
+
+/* ── Type ─────────────────────────────────────────────────────────────── */
+.font-display,
+.display,
+.h1,
+.h2,
+.h3 {
+    font-family: var(--font-display);
+    font-optical-sizing: auto;
+    font-variation-settings:
+        'SOFT' 100,
+        'WONK' 0;
+    letter-spacing: -0.015em;
+}
+
+.display {
+    font-size: clamp(3rem, 8.5vw, 7.5rem);
+    line-height: 0.95;
+    font-weight: 500;
+}
+
+.h1 {
+    font-size: clamp(2.4rem, 5.4vw, 4.6rem);
+    line-height: 1.02;
+    font-weight: 500;
+}
+
+.h2 {
+    font-size: clamp(1.8rem, 3.4vw, 2.8rem);
+    line-height: 1.08;
+    font-weight: 500;
+}
+
+.h3 {
+    font-size: clamp(1.3rem, 2vw, 1.6rem);
+    line-height: 1.2;
+    font-weight: 600;
+}
+
+.italic-wonk {
+    font-style: italic;
+    font-variation-settings:
+        'SOFT' 100,
+        'WONK' 1;
+}
+
+.eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--moss);
+}
+
+.eyebrow::before {
+    content: '';
+    width: 1.6rem;
+    height: 2px;
+    border-radius: 2px;
+    background: currentColor;
+    opacity: 0.6;
+}
+
+.lead {
+    font-size: clamp(1.08rem, 1.4vw, 1.3rem);
+    line-height: 1.65;
+    color: var(--ink-soft);
+}
+
+/* A hand-drawn underline that draws itself under a highlighted word */
+.scribble {
+    position: relative;
+    white-space: nowrap;
+}
+
+.scribble svg {
+    position: absolute;
+    left: -2%;
+    bottom: -0.18em;
+    width: 104%;
+    height: 0.45em;
+    overflow: visible;
+    color: var(--gold);
+}
+
+.scribble path {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    transition: stroke-dashoffset 1.2s var(--ease-in-out) 0.6s;
+}
+
+.in .scribble path,
+.scribble.in path {
+    stroke-dashoffset: 0;
+}
+
+/* ── Layout ───────────────────────────────────────────────────────────── */
+.wrap {
+    width: 100%;
+    max-width: var(--max);
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+}
+
+.section {
+    padding-block: var(--section);
+    position: relative;
+}
+
+/* ── Buttons ──────────────────────────────────────────────────────────── */
+.btn {
+    --btn-bg: var(--night);
+    --btn-fg: var(--cream);
+    --btn-shadow: var(--night-deep);
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    min-height: 3.25rem;
+    padding: 0.85rem 1.6rem;
+    border-radius: 999px;
+    font-family: var(--font-body);
+    font-weight: 800;
+    font-size: 1rem;
+    letter-spacing: 0.01em;
+    color: var(--btn-fg);
+    background: var(--btn-bg);
+    box-shadow: 0 4px 0 var(--btn-shadow);
+    transition:
+        transform 0.25s var(--ease-bounce),
+        box-shadow 0.25s var(--ease),
+        background-color 0.2s;
+    cursor: pointer;
+    white-space: nowrap;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.btn:hover {
+    transform: translateY(-2px) rotate(-0.6deg);
+    box-shadow: 0 6px 0 var(--btn-shadow);
+}
+
+.btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 var(--btn-shadow);
+}
+
+.btn:disabled,
+.btn[aria-disabled='true'] {
+    opacity: 0.55;
+    pointer-events: none;
+}
+
+.btn svg {
+    width: 1.2em;
+    height: 1.2em;
+    flex: none;
+}
+
+.btn--gold {
+    --btn-bg: var(--gold);
+    --btn-fg: var(--night-deep);
+    --btn-shadow: #c98a1d;
+}
+
+.btn--ember {
+    --btn-bg: var(--ember);
+    --btn-fg: #fff;
+    --btn-shadow: #b5441f;
+}
+
+.btn--light {
+    --btn-bg: var(--paper);
+    --btn-fg: var(--night);
+    --btn-shadow: var(--sand);
+}
+
+.btn--ghost {
+    --btn-bg: transparent;
+    --btn-fg: currentColor;
+    --btn-shadow: transparent;
+    box-shadow: inset 0 0 0 2px currentColor;
+}
+
+.btn--ghost:hover,
+.btn--ghost:active {
+    box-shadow: inset 0 0 0 2px currentColor;
+    background: rgb(255 255 255 / 0.08);
+}
+
+.btn--sm {
+    min-height: 2.5rem;
+    padding: 0.5rem 1.1rem;
+    font-size: 0.9rem;
+}
+
+.btn--block {
+    width: 100%;
+}
+
+/* A shine that sweeps across on hover */
+.btn--shine {
+    overflow: hidden;
+}
+
+.btn--shine::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(110deg, transparent 30%, rgb(255 255 255 / 0.55) 50%, transparent 70%);
+    transform: translateX(-120%);
+    transition: transform 0.9s var(--ease);
+    pointer-events: none;
+}
+
+.btn--shine:hover::after {
+    transform: translateX(120%);
+}
+
+/* Text link with an arrow that nudges */
+.link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-weight: 800;
+    color: var(--moss);
+    border-bottom: 2px solid color-mix(in srgb, currentColor 30%, transparent);
+    padding-bottom: 0.1rem;
+    transition:
+        border-color 0.2s,
+        gap 0.3s var(--ease-bounce);
+}
+
+.link:hover {
+    border-color: currentColor;
+    gap: 0.7rem;
+}
+
+/* ── Surfaces ─────────────────────────────────────────────────────────── */
+.card {
+    position: relative;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 1.75rem;
+    box-shadow: var(--shadow-soft);
+}
+
+.card--lift {
+    transition:
+        transform 0.45s var(--ease-bounce),
+        box-shadow 0.35s var(--ease);
+}
+
+.card--lift:hover {
+    transform: translateY(-6px) rotate(-0.4deg);
+    box-shadow: var(--shadow-lift);
+}
+
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.8rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    background: var(--sand);
+    color: var(--ink);
+}
+
+.chip--gold {
+    background: var(--gold-soft);
+    color: #7a4b05;
+}
+
+.chip--moss {
+    background: #dcebdf;
+    color: var(--moss);
+}
+
+.chip--rose {
+    background: #fbe1ea;
+    color: #9c2f58;
+}
+
+/* Paper grain: a faint noise so flat colour feels printed */
+.grain {
+    position: relative;
+    isolation: isolate;
+}
+
+.grain::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.35;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .36 0 0 0 0 .2 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Dotted star pattern for night backgrounds */
+.pat-stars {
+    background-image:
+        radial-gradient(1.2px 1.2px at 20% 30%, rgb(255 255 255 / 0.7), transparent 60%),
+        radial-gradient(1px 1px at 70% 80%, rgb(255 255 255 / 0.55), transparent 60%),
+        radial-gradient(1.4px 1.4px at 85% 15%, rgb(251 227 164 / 0.8), transparent 60%),
+        radial-gradient(1px 1px at 40% 65%, rgb(255 255 255 / 0.5), transparent 60%);
+    background-size: 220px 220px;
+}
+
+.night {
+    background:
+        radial-gradient(120% 80% at 50% 0%, #1f4642 0%, transparent 60%),
+        linear-gradient(180deg, var(--night) 0%, var(--night-deep) 100%);
+    color: var(--cream);
+}
+
+.night .eyebrow {
+    color: var(--gold);
+}
+
+.night .lead {
+    color: rgb(251 244 230 / 0.78);
+}
+
+/* ── Masks ────────────────────────────────────────────────────────────── */
+.mask {
+    position: relative;
+    overflow: hidden;
+}
+
+.mask img,
+.mask video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.mask--arch {
+    border-radius: 999px 999px 1.75rem 1.75rem;
+}
+
+.mask--circle {
+    border-radius: 50%;
+}
+
+.mask--blob {
+    border-radius: 42% 58% 63% 37% / 41% 44% 56% 59%;
+}
+
+.mask--blob-2 {
+    border-radius: 63% 37% 45% 55% / 49% 61% 39% 51%;
+}
+
+/* ── Forms (auth & settings) ──────────────────────────────────────────── */
+.field {
+    display: grid;
+    gap: 0.45rem;
+}
+
+.field > label,
+.field-label {
+    font-size: 0.88rem;
+    font-weight: 800;
+    color: var(--ink);
+}
+
+.input {
+    width: 100%;
+    min-height: 3.1rem;
+    padding: 0.7rem 1.1rem;
+    border-radius: 1rem;
+    border: 2px solid var(--line);
+    background: #fff;
+    color: var(--ink);
+    font-size: 1rem;
+    font-weight: 600;
+    transition:
+        border-color 0.2s,
+        box-shadow 0.2s,
+        transform 0.2s var(--ease-bounce);
+}
+
+.input::placeholder {
+    color: var(--mute);
+    font-weight: 500;
+}
+
+.input:hover {
+    border-color: var(--line-strong);
+}
+
+.input:focus {
+    outline: none;
+    border-color: var(--gold);
+    box-shadow: 0 0 0 5px rgb(242 184 75 / 0.25);
+}
+
+.input-error {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #c2410c;
+}
+
+/* ── Toast ────────────────────────────────────────────────────────────── */
+.toast {
+    position: fixed;
+    left: 50%;
+    bottom: 1.5rem;
+    z-index: 120;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    max-width: min(32rem, calc(100vw - 2rem));
+    padding: 0.85rem 1.25rem;
+    border-radius: 1.25rem;
+    font-weight: 700;
+    background: var(--night);
+    color: var(--cream);
+    box-shadow: var(--shadow-lift);
+    translate: -50% 0;
+}
+
+.toast--error {
+    background: #7c2d12;
+}

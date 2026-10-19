@@ -1,0 +1,382 @@
+/* ── Motion ─────────────────────────────────────────────────────────────
+   Hidden states only apply once JS has announced itself (`html.js`), so
+   nothing is stranded invisible if scripts fail. Everything calms down
+   under prefers-reduced-motion at the end of this file. */
+
+/* Rise and fade */
+.js [data-reveal] {
+    opacity: 0;
+    transform: translate3d(0, 2rem, 0);
+    transition:
+        opacity 1s var(--ease-out) calc(var(--d, 0) * 1s),
+        transform 1.2s var(--ease-out) calc(var(--d, 0) * 1s);
+}
+
+.js [data-reveal].in {
+    opacity: 1;
+    transform: none;
+}
+
+/* Pop: springs up from small, for stickers and badges */
+.js [data-reveal='pop'] {
+    transform: scale(0.6) rotate(-8deg);
+    transition:
+        opacity 0.5s var(--ease-out) calc(var(--d, 0) * 1s),
+        transform 0.9s var(--ease-bounce) calc(var(--d, 0) * 1s);
+}
+
+/* Masked pictures unveil from below while the image settles from a zoom.
+   The clip sits on the children so the observer always sees a whole box. */
+.js [data-reveal='mask'] {
+    opacity: 1;
+    transform: none;
+}
+
+.js [data-reveal='mask'] > * {
+    clip-path: inset(100% 0 0 0 round 2rem);
+    transition: clip-path 1.4s var(--ease-in-out) calc(var(--d, 0) * 1s);
+}
+
+.js [data-reveal='mask'].in > * {
+    clip-path: inset(0 0 0 0 round 0);
+}
+
+.js [data-reveal='mask'] img {
+    scale: 1.2;
+    transition: scale 2.2s var(--ease-out) calc(var(--d, 0) * 1s);
+}
+
+.js [data-reveal='mask'].in img {
+    scale: 1;
+}
+
+/* Headings: each word rises out of its own clip, with a little tilt */
+.split__clip {
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: top;
+    padding: 0.08em 0.04em 0.16em;
+    margin: -0.08em -0.04em -0.16em;
+}
+
+.split__word {
+    display: inline-block;
+    white-space: pre;
+}
+
+.js [data-reveal='words'] {
+    opacity: 1;
+    transform: none;
+}
+
+.js [data-reveal='words'] .split__word {
+    transform: translate3d(0, 115%, 0) rotate(6deg);
+    transform-origin: left bottom;
+    transition: transform 1.1s var(--ease-out) calc(var(--d, 0) * 1s + var(--i) * 60ms);
+}
+
+.js [data-reveal='words'].in .split__word {
+    transform: none;
+}
+
+/* Hairline / path that draws itself */
+.js [data-reveal='draw'] {
+    opacity: 1;
+    transform: none;
+}
+
+.js [data-reveal='draw'] path {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    transition: stroke-dashoffset 2.4s var(--ease-in-out) calc(var(--d, 0) * 1s);
+}
+
+.js [data-reveal='draw'].in path {
+    stroke-dashoffset: 0;
+}
+
+/* ── Loops ────────────────────────────────────────────────────────────── */
+.float {
+    animation: float 6s var(--ease-in-out) infinite alternate;
+}
+
+.float--slow {
+    animation-duration: 9s;
+}
+
+.float--late {
+    animation-delay: -3s;
+}
+
+@keyframes float {
+    from {
+        transform: translate3d(0, -0.5rem, 0) rotate(-1.5deg);
+    }
+    to {
+        transform: translate3d(0, 0.5rem, 0) rotate(1.5deg);
+    }
+}
+
+.spin {
+    animation: spin 30s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.twinkle {
+    animation: twinkle 3.2s ease-in-out infinite;
+    transform-box: fill-box;
+    transform-origin: center;
+}
+
+@keyframes twinkle {
+    0%,
+    100% {
+        opacity: 0.25;
+        transform: scale(0.7);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.wiggle:hover,
+.wiggle.is-wiggling {
+    animation: wiggle 0.7s var(--ease-in-out);
+}
+
+@keyframes wiggle {
+    0%,
+    100% {
+        transform: rotate(0);
+    }
+    20% {
+        transform: rotate(-7deg) scale(1.04);
+    }
+    45% {
+        transform: rotate(6deg) scale(1.06);
+    }
+    70% {
+        transform: rotate(-3deg) scale(1.03);
+    }
+}
+
+.bob {
+    animation: bob 2.4s var(--ease-in-out) infinite;
+}
+
+@keyframes bob {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-6px);
+    }
+}
+
+/* Marquee */
+.marquee {
+    display: flex;
+    overflow: hidden;
+    user-select: none;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+}
+
+.marquee__track {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: clamp(1.5rem, 3vw, 3rem);
+    padding-right: clamp(1.5rem, 3vw, 3rem);
+    animation: marquee var(--marquee-speed, 50s) linear infinite;
+}
+
+.marquee--reverse .marquee__track {
+    animation-direction: reverse;
+}
+
+.marquee:hover .marquee__track {
+    animation-play-state: paused;
+}
+
+@keyframes marquee {
+    to {
+        transform: translate3d(-100%, 0, 0);
+    }
+}
+
+/* Sparkle burst particles (spawned by the sparkle() helper) */
+.burst {
+    position: fixed;
+    z-index: 200;
+    pointer-events: none;
+    width: 0;
+    height: 0;
+}
+
+.burst i {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: var(--s, 10px);
+    height: var(--s, 10px);
+    margin: calc(var(--s, 10px) / -2);
+    background: var(--c, var(--gold));
+    clip-path: polygon(50% 0, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0 50%, 39% 39%);
+    animation: burst 0.9s var(--ease-out) forwards;
+}
+
+.burst i.dot {
+    clip-path: circle(50%);
+}
+
+@keyframes burst {
+    0% {
+        transform: translate(0, 0) scale(0.2) rotate(0);
+        opacity: 1;
+    }
+    70% {
+        opacity: 1;
+    }
+    100% {
+        transform: translate(var(--x), var(--y)) scale(1) rotate(var(--r, 180deg));
+        opacity: 0;
+    }
+}
+
+/* Coin flying to the purse */
+.coin-fly {
+    position: fixed;
+    z-index: 200;
+    pointer-events: none;
+    width: 28px;
+    height: 28px;
+    margin: -14px;
+    animation: coin-fly 0.8s var(--ease-in-out) forwards;
+    animation-delay: var(--delay, 0s);
+    opacity: 0;
+}
+
+@keyframes coin-fly {
+    0% {
+        opacity: 1;
+        transform: translate(0, 0) scale(1);
+    }
+    50% {
+        transform: translate(calc(var(--x) * 0.5), calc(var(--y) * 0.5 - 60px)) scale(1.2);
+    }
+    100% {
+        opacity: 1;
+        transform: translate(var(--x), var(--y)) scale(0.5);
+    }
+}
+
+/* ── Curtain ──────────────────────────────────────────────────────────
+   On a first visit two book covers swing open like a storybook. Pure CSS
+   timing so it can never strand the page behind it. */
+.curtain {
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    pointer-events: none;
+    display: grid;
+    place-items: center;
+    perspective: 1800px;
+    animation: curtain-done 0s linear 2.3s forwards;
+}
+
+.curtain__panel {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 50.5%;
+    background:
+        radial-gradient(circle at 50% 50%, rgb(242 184 75 / 0.12), transparent 60%),
+        repeating-linear-gradient(90deg, rgb(0 0 0 / 0.06) 0 1px, transparent 1px 7px),
+        var(--night);
+    animation: curtain-open 1.3s var(--ease-in-out) 0.8s forwards;
+    backface-visibility: hidden;
+}
+
+.curtain__panel::after {
+    content: '';
+    position: absolute;
+    inset: 1.5rem;
+    border: 2px solid rgb(242 184 75 / 0.45);
+    border-radius: 0.5rem;
+}
+
+.curtain__panel--left {
+    left: 0;
+    transform-origin: left center;
+    --to: -105deg;
+}
+
+.curtain__panel--right {
+    right: 0;
+    transform-origin: right center;
+    --to: 105deg;
+}
+
+.curtain__logo {
+    position: relative;
+    z-index: 2;
+    width: min(16rem, 52vw);
+    color: var(--gold);
+    animation: curtain-logo 1.4s var(--ease-out) forwards;
+}
+
+@keyframes curtain-open {
+    to {
+        transform: rotateY(var(--to));
+        opacity: 0;
+    }
+}
+
+@keyframes curtain-logo {
+    0% {
+        opacity: 0;
+        transform: translateY(0.75rem) scale(0.9);
+    }
+    40%,
+    65% {
+        opacity: 1;
+        transform: none;
+    }
+    100% {
+        opacity: 0;
+        transform: scale(1.15);
+    }
+}
+
+@keyframes curtain-done {
+    to {
+        visibility: hidden;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    .curtain {
+        display: none;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        transition-delay: 0s !important;
+    }
+}

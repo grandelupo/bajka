@@ -1,18 +1,12 @@
 <script setup lang="ts">
-import InputError from '@/components/InputError.vue';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/AuthLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { LoaderCircle } from 'lucide-vue-next';
 
-interface Props {
+const props = defineProps<{
     token: string;
     email: string;
-}
-
-const props = defineProps<Props>();
+}>();
 
 const form = useForm({
     token: props.token,
@@ -23,59 +17,38 @@ const form = useForm({
 
 const submit = () => {
     form.post(route('password.store'), {
-        onFinish: () => {
-            form.reset('password', 'password_confirmation');
-        },
+        onFinish: () => form.reset('password', 'password_confirmation'),
     });
 };
 </script>
 
 <template>
-    <AuthLayout title="Resetuj hasło" description="Wprowadź swoje nowe hasło poniżej">
-        <Head title="Resetuj hasło" />
+    <AuthLayout eyebrow="Nowe hasło" title="Ustaw nowe hasło" description="Wybierz hasło, które łatwo zapamiętasz, a trudno zgadnąć.">
+        <Head title="Nowe hasło" />
 
-        <form @submit.prevent="submit">
-            <div class="grid gap-6">
-                <div class="grid gap-2">
-                    <Label for="email">Email</Label>
-                    <Input id="email" type="email" name="email" autocomplete="email" v-model="form.email" class="mt-1 block w-full" readonly />
-                    <InputError :message="form.errors.email" class="mt-2" />
-                </div>
-
-                <div class="grid gap-2">
-                    <Label for="password">Hasło</Label>
-                    <Input
-                        id="password"
-                        type="password"
-                        name="password"
-                        autocomplete="new-password"
-                        v-model="form.password"
-                        class="mt-1 block w-full"
-                        autofocus
-                        placeholder="Hasło"
-                    />
-                    <InputError :message="form.errors.password" />
-                </div>
-
-                <div class="grid gap-2">
-                    <Label for="password_confirmation">Potwierdź hasło</Label>
-                    <Input
-                        id="password_confirmation"
-                        type="password"
-                        name="password_confirmation"
-                        autocomplete="new-password"
-                        v-model="form.password_confirmation"
-                        class="mt-1 block w-full"
-                        placeholder="Potwierdź hasło"
-                    />
-                    <InputError :message="form.errors.password_confirmation" />
-                </div>
-
-                <Button type="submit" class="mt-4 w-full" :disabled="form.processing">
-                    <LoaderCircle v-if="form.processing" class="h-4 w-4 animate-spin" />
-                    Resetuj hasło
-                </Button>
+        <form class="grid gap-5" @submit.prevent="submit">
+            <div class="field">
+                <label for="email">Adres e-mail</label>
+                <input id="email" v-model="form.email" class="input" type="email" autocomplete="email" readonly />
+                <p v-if="form.errors.email" class="input-error">{{ form.errors.email }}</p>
             </div>
+
+            <div class="field">
+                <label for="password">Nowe hasło</label>
+                <input id="password" v-model="form.password" class="input" type="password" required autofocus autocomplete="new-password" placeholder="Co najmniej 8 znaków" />
+                <p v-if="form.errors.password" class="input-error">{{ form.errors.password }}</p>
+            </div>
+
+            <div class="field">
+                <label for="password_confirmation">Powtórz hasło</label>
+                <input id="password_confirmation" v-model="form.password_confirmation" class="input" type="password" required autocomplete="new-password" />
+                <p v-if="form.errors.password_confirmation" class="input-error">{{ form.errors.password_confirmation }}</p>
+            </div>
+
+            <button type="submit" class="btn btn--block" :disabled="form.processing" data-sfx="unlock">
+                <LoaderCircle v-if="form.processing" class="animate-spin" />
+                Zapisz nowe hasło
+            </button>
         </form>
     </AuthLayout>
 </template>

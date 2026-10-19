@@ -1,11 +1,6 @@
 <script setup lang="ts">
-import InputError from '@/components/InputError.vue';
-import TextLink from '@/components/TextLink.vue';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/AuthLayout.vue';
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, Link, useForm } from '@inertiajs/vue3';
 import { LoaderCircle } from 'lucide-vue-next';
 
 defineProps<{
@@ -22,33 +17,34 @@ const submit = () => {
 </script>
 
 <template>
-    <AuthLayout title="Zapomniałeś hasła" description="Wprowadź swój email, aby otrzymać link do resetowania hasła">
-        <Head title="Zapomniałeś hasła" />
+    <AuthLayout
+        eyebrow="Zgubione hasło"
+        title="Nawet smokom się zdarza"
+        description="Podaj swój e-mail, a wyślemy link do ustawienia nowego hasła."
+        aside="Smok też kiedyś zgubił swój ogień. Hasło znajdziemy dużo szybciej!"
+    >
+        <Head title="Nie pamiętam hasła" />
 
-        <div v-if="status" class="mb-4 text-center text-sm font-medium text-green-600">
+        <div v-if="status" class="mb-4 rounded-2xl bg-[#dcebdf] px-4 py-3 text-sm font-bold text-[var(--moss)]">
             {{ status }}
         </div>
 
-        <div class="space-y-6">
-            <form @submit.prevent="submit">
-                <div class="grid gap-2">
-                    <Label for="email">Adres email</Label>
-                    <Input id="email" type="email" name="email" autocomplete="off" v-model="form.email" autofocus placeholder="email@przykład.pl" />
-                    <InputError :message="form.errors.email" />
-                </div>
-
-                <div class="my-6 flex items-center justify-start">
-                    <Button class="w-full" :disabled="form.processing">
-                        <LoaderCircle v-if="form.processing" class="h-4 w-4 animate-spin" />
-                        Wyślij link do resetowania hasła
-                    </Button>
-                </div>
-            </form>
-
-            <div class="space-x-1 text-center text-sm text-muted-foreground">
-                <span>Lub wróć do</span>
-                <TextLink :href="route('login')">logowania</TextLink>
+        <form class="grid gap-5" @submit.prevent="submit">
+            <div class="field">
+                <label for="email">Adres e-mail</label>
+                <input id="email" v-model="form.email" class="input" type="email" required autofocus autocomplete="off" placeholder="ty@przyklad.pl" />
+                <p v-if="form.errors.email" class="input-error">{{ form.errors.email }}</p>
             </div>
-        </div>
+
+            <button type="submit" class="btn btn--block" :disabled="form.processing" data-sfx="whoosh">
+                <LoaderCircle v-if="form.processing" class="animate-spin" />
+                Wyślij link
+            </button>
+
+            <p class="text-center text-[var(--ink-soft)]">
+                Jednak pamiętasz?
+                <Link :href="route('login')" class="font-extrabold text-[var(--moss)] underline underline-offset-4">Wróć do logowania</Link>
+            </p>
+        </form>
     </AuthLayout>
 </template>

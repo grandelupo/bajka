@@ -1,12 +1,9 @@
 <script setup lang="ts">
-import InputError from '@/components/InputError.vue';
-import TextLink from '@/components/TextLink.vue';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import AuthBase from '@/layouts/AuthLayout.vue';
-import { Head, useForm } from '@inertiajs/vue3';
-import { LoaderCircle } from 'lucide-vue-next';
+import GoogleButton from '@/components/story/GoogleButton.vue';
+import AuthLayout from '@/layouts/AuthLayout.vue';
+import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Check, LoaderCircle } from 'lucide-vue-next';
+import { computed } from 'vue';
 
 const form = useForm({
     name: '',
@@ -14,6 +11,18 @@ const form = useForm({
     password: '',
     password_confirmation: '',
 });
+
+const strength = computed(() => {
+    const p = form.password;
+    let score = 0;
+    if (p.length >= 8) score++;
+    if (p.length >= 12) score++;
+    if (/[A-Z]/.test(p) && /[a-z]/.test(p)) score++;
+    if (/\d/.test(p) || /[^A-Za-z0-9]/.test(p)) score++;
+    return score;
+});
+const strengthLabel = computed(() => ['Za krótkie', 'Słabe', 'Niezłe', 'Mocne', 'Smoczo mocne!'][strength.value]);
+const matches = computed(() => form.password_confirmation.length > 0 && form.password === form.password_confirmation);
 
 const submit = () => {
     form.post(route('register'), {
@@ -23,61 +32,114 @@ const submit = () => {
 </script>
 
 <template>
-    <AuthBase title="Utwórz konto" description="Wprowadź swoje dane, aby utworzyć konto">
+    <AuthLayout
+        eyebrow="Darmowe konto"
+        title="Dołącz do przygody"
+        description="Z kontem przeczytasz za darmo strony aż do jedenastej, a my zapamiętamy, gdzie skończyłeś."
+        aside="Olga już szuka śladów, Igor programuje drona. Brakuje tylko Ciebie!"
+    >
         <Head title="Rejestracja" />
 
-        <form @submit.prevent="submit" class="flex flex-col gap-6">
-            <div class="grid gap-6">
-                <div class="grid gap-2">
-                    <Label for="name">Imię i nazwisko</Label>
-                    <Input id="name" type="text" required autofocus :tabindex="1" autocomplete="name" v-model="form.name" placeholder="Imię i nazwisko" />
-                    <InputError :message="form.errors.name" />
-                </div>
+        <GoogleButton />
 
-                <div class="grid gap-2">
-                    <Label for="email">Adres email</Label>
-                    <Input id="email" type="email" required :tabindex="2" autocomplete="email" v-model="form.email" placeholder="email@przykład.pl" />
-                    <InputError :message="form.errors.email" />
-                </div>
+        <form class="grid gap-5" @submit.prevent="submit">
+            <div class="field">
+                <label for="name">Jak masz na imię?</label>
+                <input id="name" v-model="form.name" class="input" type="text" required autofocus autocomplete="name" placeholder="Imię" />
+                <p v-if="form.errors.name" class="input-error">{{ form.errors.name }}</p>
+            </div>
 
-                <div class="grid gap-2">
-                    <Label for="password">Hasło</Label>
-                    <Input
-                        id="password"
-                        type="password"
-                        required
-                        :tabindex="3"
-                        autocomplete="new-password"
-                        v-model="form.password"
-                        placeholder="Hasło"
-                    />
-                    <InputError :message="form.errors.password" />
-                </div>
+            <div class="field">
+                <label for="email">Adres e-mail</label>
+                <input id="email" v-model="form.email" class="input" type="email" required autocomplete="email" placeholder="ty@przyklad.pl" />
+                <p v-if="form.errors.email" class="input-error">{{ form.errors.email }}</p>
+            </div>
 
-                <div class="grid gap-2">
-                    <Label for="password_confirmation">Potwierdź hasło</Label>
-                    <Input
+            <div class="field">
+                <label for="password">Hasło</label>
+                <input id="password" v-model="form.password" class="input" type="password" required autocomplete="new-password" placeholder="Co najmniej 8 znaków" />
+                <div v-if="form.password" class="strength" :data-score="strength">
+                    <span v-for="i in 4" :key="i" :class="{ on: i <= strength }" />
+                    <em>{{ strengthLabel }}</em>
+                </div>
+                <p v-if="form.errors.password" class="input-error">{{ form.errors.password }}</p>
+            </div>
+
+            <div class="field">
+                <label for="password_confirmation">Powtórz hasło</label>
+                <div class="relative">
+                    <input
                         id="password_confirmation"
+                        v-model="form.password_confirmation"
+                        class="input pr-12"
                         type="password"
                         required
-                        :tabindex="4"
                         autocomplete="new-password"
-                        v-model="form.password_confirmation"
-                        placeholder="Potwierdź hasło"
+                        placeholder="Jeszcze raz to samo"
                     />
-                    <InputError :message="form.errors.password_confirmation" />
+                    <Transition name="pop">
+                        <Check v-if="matches" class="absolute top-1/2 right-4 h-5 w-5 -translate-y-1/2 text-[var(--moss)]" />
+                    </Transition>
                 </div>
-
-                <Button type="submit" class="mt-2 w-full" tabindex="5" :disabled="form.processing">
-                    <LoaderCircle v-if="form.processing" class="h-4 w-4 animate-spin" />
-                    Utwórz konto
-                </Button>
+                <p v-if="form.errors.password_confirmation" class="input-error">{{ form.errors.password_confirmation }}</p>
             </div>
 
-            <div class="text-center text-sm text-muted-foreground">
+            <button type="submit" class="btn btn--gold btn--block btn--shine mt-2" :disabled="form.processing" data-sfx="sparkle">
+                <LoaderCircle v-if="form.processing" class="animate-spin" />
+                Załóż konto i czytaj
+            </button>
+
+            <p class="text-center text-[var(--ink-soft)]">
                 Masz już konto?
-                <TextLink :href="route('login')" class="underline underline-offset-4" :tabindex="6">Zaloguj się</TextLink>
-            </div>
+                <Link :href="route('login')" class="font-extrabold text-[var(--moss)] underline underline-offset-4">Zaloguj się</Link>
+            </p>
         </form>
-    </AuthBase>
+    </AuthLayout>
 </template>
+
+<style scoped>
+.strength {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.15rem;
+}
+
+.strength span {
+    flex: 1;
+    height: 6px;
+    border-radius: 6px;
+    background: var(--sand);
+    transition: background 0.3s;
+}
+
+.strength[data-score='1'] span.on {
+    background: #e8643a;
+}
+
+.strength[data-score='2'] span.on {
+    background: var(--gold);
+}
+
+.strength[data-score='3'] span.on,
+.strength[data-score='4'] span.on {
+    background: var(--moss);
+}
+
+.strength em {
+    min-width: 7.5rem;
+    text-align: right;
+    font-style: normal;
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: var(--ink-soft);
+}
+
+.pop-enter-active {
+    transition: transform 0.4s var(--ease-bounce);
+}
+
+.pop-enter-from {
+    transform: translateY(-50%) scale(0) !important;
+}
+</style>

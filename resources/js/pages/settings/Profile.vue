@@ -1,29 +1,15 @@
 <script setup lang="ts">
-import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
-
 import DeleteUser from '@/components/DeleteUser.vue';
-import HeadingSmall from '@/components/HeadingSmall.vue';
-import InputError from '@/components/InputError.vue';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
-import { type BreadcrumbItem, type SharedData, type User } from '@/types';
+import { type SharedData, type User } from '@/types';
+import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
+import { Check, LoaderCircle } from 'lucide-vue-next';
 
-interface Props {
+defineProps<{
     mustVerifyEmail: boolean;
     status?: string;
-}
-
-defineProps<Props>();
-
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Profile settings',
-        href: '/settings/profile',
-    },
-];
+}>();
 
 const page = usePage<SharedData>();
 const user = page.props.auth.user as User;
@@ -34,69 +20,49 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.patch(route('profile.update'), {
-        preserveScroll: true,
-    });
+    form.patch(route('profile.update'), { preserveScroll: true });
 };
 </script>
 
 <template>
-    <AppLayout :breadcrumbs="breadcrumbs">
-        <Head title="Profile settings" />
+    <AppLayout>
+        <Head title="Profil" />
 
         <SettingsLayout>
-            <div class="flex flex-col space-y-6">
-                <HeadingSmall title="Profile information" description="Update your name and email address" />
+            <div class="grid gap-6">
+                <div>
+                    <h2 class="h3">Twój profil</h2>
+                    <p class="mt-1 text-[var(--ink-soft)]">Imię i adres e-mail, którymi się logujesz.</p>
+                </div>
 
-                <form @submit.prevent="submit" class="space-y-6">
-                    <div class="grid gap-2">
-                        <Label for="name">Name</Label>
-                        <Input id="name" class="mt-1 block w-full" v-model="form.name" required autocomplete="name" placeholder="Full name" />
-                        <InputError class="mt-2" :message="form.errors.name" />
+                <form class="grid gap-5" @submit.prevent="submit">
+                    <div class="field">
+                        <label for="name">Imię</label>
+                        <input id="name" v-model="form.name" class="input" required autocomplete="name" />
+                        <p v-if="form.errors.name" class="input-error">{{ form.errors.name }}</p>
                     </div>
 
-                    <div class="grid gap-2">
-                        <Label for="email">Email address</Label>
-                        <Input
-                            id="email"
-                            type="email"
-                            class="mt-1 block w-full"
-                            v-model="form.email"
-                            required
-                            autocomplete="username"
-                            placeholder="Email address"
-                        />
-                        <InputError class="mt-2" :message="form.errors.email" />
+                    <div class="field">
+                        <label for="email">Adres e-mail</label>
+                        <input id="email" v-model="form.email" class="input" type="email" required autocomplete="username" />
+                        <p v-if="form.errors.email" class="input-error">{{ form.errors.email }}</p>
                     </div>
 
-                    <div v-if="mustVerifyEmail && !user.email_verified_at">
-                        <p class="-mt-4 text-sm text-muted-foreground">
-                            Your email address is unverified.
-                            <Link
-                                :href="route('verification.send')"
-                                method="post"
-                                as="button"
-                                class="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"
-                            >
-                                Click here to resend the verification email.
-                            </Link>
-                        </p>
-
-                        <div v-if="status === 'verification-link-sent'" class="mt-2 text-sm font-medium text-green-600">
-                            A new verification link has been sent to your email address.
-                        </div>
+                    <div v-if="mustVerifyEmail && !user.email_verified_at" class="text-sm text-[var(--ink-soft)]">
+                        Twój adres nie jest jeszcze potwierdzony.
+                        <Link :href="route('verification.send')" method="post" as="button" class="font-bold text-[var(--moss)] underline">
+                            Wyślij link ponownie
+                        </Link>
+                        <p v-if="status === 'verification-link-sent'" class="mt-2 font-bold text-[var(--moss)]">Wysłaliśmy nowy link.</p>
                     </div>
 
                     <div class="flex items-center gap-4">
-                        <Button :disabled="form.processing">Save</Button>
-
-                        <Transition
-                            enter-active-class="transition ease-in-out"
-                            enter-from-class="opacity-0"
-                            leave-active-class="transition ease-in-out"
-                            leave-to-class="opacity-0"
-                        >
-                            <p v-show="form.recentlySuccessful" class="text-sm text-neutral-600">Saved.</p>
+                        <button class="btn" :disabled="form.processing" data-sfx="sparkle">
+                            <LoaderCircle v-if="form.processing" class="animate-spin" />
+                            Zapisz
+                        </button>
+                        <Transition enter-from-class="opacity-0 scale-75" enter-active-class="transition duration-300" leave-to-class="opacity-0" leave-active-class="transition">
+                            <p v-show="form.recentlySuccessful" class="flex items-center gap-1 font-bold text-[var(--moss)]"><Check class="h-4 w-4" /> Zapisane!</p>
                         </Transition>
                     </div>
                 </form>

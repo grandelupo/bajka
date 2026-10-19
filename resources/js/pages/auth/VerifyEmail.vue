@@ -1,8 +1,6 @@
 <script setup lang="ts">
-import TextLink from '@/components/TextLink.vue';
-import { Button } from '@/components/ui/button';
 import AuthLayout from '@/layouts/AuthLayout.vue';
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, Link, useForm } from '@inertiajs/vue3';
 import { LoaderCircle } from 'lucide-vue-next';
 
 defineProps<{
@@ -17,20 +15,21 @@ const submit = () => {
 </script>
 
 <template>
-    <AuthLayout title="Verify email" description="Please verify your email address by clicking on the link we just emailed to you.">
-        <Head title="Email verification" />
+    <AuthLayout eyebrow="Jeszcze tylko jedno" title="Sprawdź skrzynkę" description="Wysłaliśmy Ci e-mail z linkiem. Kliknij go, a potwierdzisz swój adres.">
+        <Head title="Potwierdź e-mail" />
 
-        <div v-if="status === 'verification-link-sent'" class="mb-4 text-center text-sm font-medium text-green-600">
-            A new verification link has been sent to the email address you provided during registration.
+        <div v-if="status === 'verification-link-sent'" class="mb-4 rounded-2xl bg-[#dcebdf] px-4 py-3 text-sm font-bold text-[var(--moss)]">
+            Wysłaliśmy nowy link na adres podany przy rejestracji.
         </div>
 
-        <form @submit.prevent="submit" class="space-y-6 text-center">
-            <Button :disabled="form.processing" variant="secondary">
-                <LoaderCircle v-if="form.processing" class="h-4 w-4 animate-spin" />
-                Resend verification email
-            </Button>
-
-            <TextLink :href="route('logout')" method="post" as="button" class="mx-auto block text-sm"> Log out </TextLink>
+        <form class="grid gap-4" @submit.prevent="submit">
+            <button type="submit" class="btn btn--block" :disabled="form.processing" data-sfx="whoosh">
+                <LoaderCircle v-if="form.processing" class="animate-spin" />
+                Wyślij link ponownie
+            </button>
+            <Link :href="route('logout')" method="post" as="button" class="mx-auto font-extrabold text-[var(--moss)] underline underline-offset-4">
+                Wyloguj się
+            </Link>
         </form>
     </AuthLayout>
 </template>
