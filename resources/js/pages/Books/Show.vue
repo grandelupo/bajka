@@ -1,6 +1,6 @@
 <template>
     <AppLayout>
-        <div class="py-12">
+        <div class="py-12 color-black">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg text-black">
                     <div class="p-6">
@@ -187,9 +187,15 @@ watch([currentPage, nextPage, prevPage], ([newCurrent, newNext, newPrev]) => {
 const formatContent = (content) => {
     if (!content) return '';
     
+    // Format chapter titles
+    const chapterRegex = /\[chapter\](.*?)\[\/chapter\]/g;
+    let formattedContent = content.replace(chapterRegex, (match, title) => {
+        return `<h1 class="text-3xl font-bold text-center my-8 text-blue-800">${title}</h1>`;
+    });
+
     // Convert video links to embedded players with image preview
     const videoRegex = /\[video\](.*?)\[\/video\]/g;
-    let formattedContent = content.replace(videoRegex, (match, filename) => {
+    formattedContent = formattedContent.replace(videoRegex, (match, filename) => {
         const videoId = `video-${Math.random().toString(36).substr(2, 9)}`;
         const imageUrl = `/images/${filename}.png`;
         const videoUrl = `/videos/${filename}.mp4`;
@@ -456,7 +462,7 @@ const navigateToPage = async (pageNumber) => {
     history.pushState(
         {},
         '',
-        route('pages.show', { book: props.book.id, page: page.id })
+        route('pages.show', { book: props.book.id, page: page.page_number })
     );
 };
 

@@ -35,7 +35,8 @@ Route::get('/books/{book}', function ($book) {
 })->name('books.show');
 Route::get('/books/{book}/pages/{page}', [PageController::class, 'show'])
     ->where('page', '[0-9]+')
-    ->name('pages.show');
+    ->name('pages.show')
+    ->scopeBindings();
 
 // Google OAuth routes
 Route::get('/auth/google/redirect', [GoogleController::class, 'redirect'])->name('google.redirect');

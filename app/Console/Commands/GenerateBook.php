@@ -38,17 +38,35 @@ class GenerateBook extends Command
 
     private function processText(string $text)
     {
-        // Split text into paragraphs
+        // Split text into paragraphs and chapters
         $paragraphs = preg_split('/\n/', $text);
         
         $currentChunk = '';
         $wordCount = 0;
         $maxWordsPerPage = $this->option('words-per-page');
+        $isNewChapter = false;
 
         foreach ($paragraphs as $paragraph) {
+            // Check if this is a chapter marker
+            if (preg_match('/\[chapter\](.*?)\[\/chapter\]/', $paragraph, $matches)) {
+                // If we have content in current chunk, save it first
+                if ($currentChunk !== '') {
+                    $this->textChunks[] = $currentChunk;
+                    $currentChunk = '';
+                    $wordCount = 0;
+                }
+                
+                // Start new chunk with chapter title
+                $currentChunk = $paragraph;
+                $wordCount = str_word_count($paragraph);
+                $isNewChapter = true;
+                continue;
+            }
+
             $paragraphWords = str_word_count($paragraph);
             
-            if ($wordCount + $paragraphWords > $maxWordsPerPage && $currentChunk !== '') {
+            // If adding this paragraph would exceed the limit and we're not at a chapter start
+            if ($wordCount + $paragraphWords > $maxWordsPerPage && $currentChunk !== '' && !$isNewChapter) {
                 $this->textChunks[] = $currentChunk;
                 $currentChunk = $paragraph;
                 $wordCount = $paragraphWords;
@@ -56,6 +74,8 @@ class GenerateBook extends Command
                 $currentChunk .= ($currentChunk ? "\n\n" : '') . $paragraph;
                 $wordCount += $paragraphWords;
             }
+            
+            $isNewChapter = false;
         }
 
         if ($currentChunk) {

@@ -57,8 +57,40 @@ class PageController extends Controller
 
                 if (!$hasPurchased) {
                     if ($user->coins < $book->price_per_page) {
-                        return redirect()->route('coins.purchase')
-                            ->with('error', 'Not enough coins to view this page');
+                        return Inertia::render('Coins/Purchase', [
+                            'packages' => [
+                                [
+                                    'id' => 'basic',
+                                    'name' => 'Podstawowy pakiet',
+                                    'coins' => 100,
+                                    'price' => 20.00,
+                                ],
+                                [
+                                    'id' => 'standard',
+                                    'name' => 'Mała historia',
+                                    'coins' => 500,
+                                    'price' => 80.00,
+                                ],
+                                [
+                                    'id' => 'premium',
+                                    'name' => 'Wielka opowieść',
+                                    'coins' => 1000,
+                                    'price' => 145.00,
+                                ],
+                                [
+                                    'id' => 'ultimate',
+                                    'name' => 'Bajkowy świat',
+                                    'coins' => 2500,
+                                    'price' => 255.00,
+                                ],
+                            ],
+                            'stripeKey' => config('services.stripe.key'),
+                            'csrf_token' => csrf_token(),
+                            'redirectFrom' => [
+                                'book' => $book->id,
+                                'page' => $page->page_number,
+                            ],
+                        ]);
                     }
 
                     // Create transaction and deduct coins
