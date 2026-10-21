@@ -60,6 +60,16 @@ export interface BookSummary {
     owned_pages: number;
 }
 
+/**
+ * A page too long for a phone screen is read in parts (26A, 26B…). Each part
+ * starts at a sentence of the page; `at` is how far into the page's text (0–1)
+ * each part begins, so the narration can turn to it at the right moment.
+ */
+export interface PageSplit {
+    starts: number[];
+    at: number[];
+}
+
 export interface ReaderPage {
     id: number;
     page_number: number;

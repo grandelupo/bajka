@@ -34,7 +34,14 @@ onBeforeUnmount(() => cancelAnimationFrame(frame));
 </script>
 
 <template>
-    <Link :href="route('coins.purchase')" class="purse" :class="{ 'is-bumping': bump }" data-purse title="Twoje monety — doładuj" @animationend="bump = false">
+    <Link
+        :href="route('coins.purchase')"
+        class="purse"
+        :class="{ 'is-bumping': bump }"
+        data-purse
+        title="Twoje monety — doładuj"
+        @animationend="bump = false"
+    >
         <CoinIcon class="purse__coin" />
         <span class="purse__count">{{ shown }}</span>
         <span class="purse__plus" aria-hidden="true">+</span>
@@ -85,6 +92,15 @@ onBeforeUnmount(() => cancelAnimationFrame(frame));
     color: var(--night-deep);
     font-size: 1.1rem;
     line-height: 1;
+}
+
+@media (max-width: 360px) {
+    .purse {
+        padding-right: 0.7rem;
+    }
+    .purse__plus {
+        display: none;
+    }
 }
 
 .is-bumping {

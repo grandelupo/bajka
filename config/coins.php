@@ -33,4 +33,17 @@ return [
             'price' => 255.00,
         ],
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Payment methods
+    |--------------------------------------------------------------------------
+    |
+    | Offered at checkout, in this order. Card also carries Apple Pay and
+    | Google Pay. Listed here rather than left to the Stripe dashboard, whose
+    | default configuration has BLIK switched off.
+    |
+    */
+
+    'payment_methods' => ['card', 'blik', 'link'],
 ];

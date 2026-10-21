@@ -76,7 +76,8 @@ const onNight = computed(() => props.tone === 'night' && !scrolled.value);
                         <Transition name="menu">
                             <div v-if="menuOpen" class="usermenu__panel" @click="menuOpen = false">
                                 <p class="usermenu__hello">
-                                    Cześć, <strong>{{ user.name.split(' ')[0] }}</strong>!
+                                    Cześć, <strong>{{ user.name.split(' ')[0] }}</strong
+                                    >!
                                 </p>
                                 <Link :href="route('dashboard')"><LayoutDashboard /> Moja półka</Link>
                                 <Link :href="route('coins.history')"><History /> Historia monet</Link>
@@ -273,6 +274,21 @@ const onNight = computed(() => props.tone === 'night' && !scrolled.value);
     }
     .site-header__nav {
         margin-left: 0;
+    }
+}
+
+@media (max-width: 420px) {
+    .site-header__inner {
+        gap: 0.5rem;
+    }
+    .site-header__actions {
+        gap: 0.35rem;
+    }
+    .site-header__link {
+        padding-inline: 0.6rem;
+    }
+    .usermenu__chev {
+        display: none;
     }
 }
 

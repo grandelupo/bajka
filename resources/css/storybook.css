@@ -51,6 +51,12 @@ body {
     background: var(--cream);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+}
+
+/* Clip sideways spill (tilted bands, drifting dragons) on the app root, not on
+   <body>: body's overflow is handed to the viewport, and phones still let you
+   pan a viewport that only says overflow-x: hidden. */
+#app {
     overflow-x: clip;
 }
 
@@ -382,9 +388,7 @@ body {
 }
 
 .night {
-    background:
-        radial-gradient(120% 80% at 50% 0%, #1f4642 0%, transparent 60%),
-        linear-gradient(180deg, var(--night) 0%, var(--night-deep) 100%);
+    background: radial-gradient(120% 80% at 50% 0%, #1f4642 0%, transparent 60%), linear-gradient(180deg, var(--night) 0%, var(--night-deep) 100%);
     color: var(--cream);
 }
 

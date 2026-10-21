@@ -84,7 +84,8 @@ const statusLabel: Record<string, string> = { completed: 'opłacone', pending: '
                 <div class="greet__text">
                     <p class="eyebrow" v-reveal>Moja półka</p>
                     <h1 class="h1" v-reveal:words>
-                        <SplitText :text="`${greeting},`" /> <em class="italic-wonk greet__name"><SplitText :text="`${firstName}!`" :offset="2" /></em>
+                        <SplitText :text="`${greeting},`" />
+                        <em class="italic-wonk greet__name"><SplitText :text="`${firstName}!`" :offset="2" /></em>
                     </h1>
                     <p class="lead" v-reveal="0.2">Gotowy na kolejny rozdział? Smok już przeciera oczy.</p>
                 </div>
@@ -120,7 +121,9 @@ const statusLabel: Record<string, string> = { completed: 'opłacone', pending: '
                     </div>
                     <div class="continue__foot">
                         <span>{{ featuredPercent }}% przeczytane · {{ featured.total_pages }} stron</span>
-                        <span class="btn btn--sm">{{ featuredPage > 1 ? `Czytaj dalej od str. ${featuredPage}` : 'Otwórz książkę' }} <ArrowRight /></span>
+                        <span class="btn btn--sm"
+                            >{{ featuredPage > 1 ? `Czytaj dalej od str. ${featuredPage}` : 'Otwórz książkę' }} <ArrowRight
+                        /></span>
                     </div>
                 </div>
             </Link>
@@ -202,7 +205,10 @@ const statusLabel: Record<string, string> = { completed: 'opłacone', pending: '
                         <span class="feed__dot" style="--c: var(--gold)"><Coins /></span>
                         <span class="feed__what">
                             {{ p.amount }} monet
-                            <small>{{ Number(p.price).toFixed(2).replace('.', ',') }} zł · {{ fmt(p.created_at) }} · {{ statusLabel[p.status] ?? p.status }}</small>
+                            <small
+                                >{{ Number(p.price).toFixed(2).replace('.', ',') }} zł · {{ fmt(p.created_at) }} ·
+                                {{ statusLabel[p.status] ?? p.status }}</small
+                            >
                         </span>
                         <span class="feed__amount feed__amount--plus">+{{ p.amount }}</span>
                     </li>
@@ -229,13 +235,14 @@ const statusLabel: Record<string, string> = { completed: 'opłacone', pending: '
 .greet__inner {
     position: relative;
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 2.5rem;
     align-items: end;
 }
 
 @media (min-width: 900px) {
     .greet__inner {
-        grid-template-columns: 1fr auto;
+        grid-template-columns: minmax(0, 1fr) auto;
     }
 }
 
@@ -296,6 +303,7 @@ const statusLabel: Record<string, string> = { completed: 'opłacone', pending: '
 }
 
 .wallet__amount {
+    white-space: nowrap;
     font-family: var(--font-display);
     font-size: 2.4rem;
     font-weight: 600;
@@ -310,6 +318,24 @@ const statusLabel: Record<string, string> = { completed: 'opłacone', pending: '
 .wallet__hint {
     font-size: 0.85rem;
     color: rgb(251 244 230 / 0.65);
+}
+
+@media (max-width: 520px) {
+    .wallet {
+        flex-wrap: wrap;
+        gap: 0.9rem 1rem;
+        padding: 1.1rem;
+    }
+    .wallet__coin {
+        width: 3.4rem;
+        height: 3.4rem;
+    }
+    .wallet__amount {
+        font-size: 2rem;
+    }
+    .wallet .btn {
+        flex: 1 0 100%;
+    }
 }
 
 /* ── Continue ───────────────────────────────────────────────────────── */

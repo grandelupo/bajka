@@ -36,8 +36,14 @@ class CoinPurchaseController extends Controller
             $request->session()->put('coins.return_to', $return);
         }
 
+        // A BLIK payment still waiting for the bank comes back here to be checked again.
+        $pending = $request->query('pending');
+
         return Inertia::render('Coins/Purchase', [
             'packages' => self::packages(),
+            'pending' => is_string($pending) && preg_match('/^pi_\w+$/', $pending)
+                ? ['id' => $pending, 'tries' => (int) $request->query('tries', 0)]
+                : null,
             'stripeKey' => config('services.stripe.key'),
             'returnTo' => $request->session()->get('coins.return_to'),
             'pricePerPage' => (int) (Book::query()->value('price_per_page') ?? 5),
@@ -69,7 +75,7 @@ class CoinPurchaseController extends Controller
             $paymentIntent = PaymentIntent::create([
                 'amount' => (int) round($package['price'] * 100),
                 'currency' => 'pln',
-                'automatic_payment_methods' => ['enabled' => true],
+                'payment_method_types' => config('coins.payment_methods'),
                 'metadata' => [
                     'package_id' => $request->package_id,
                     'coins' => $package['coins'],
@@ -93,7 +99,7 @@ class CoinPurchaseController extends Controller
     public function confirm(Request $request): RedirectResponse
     {
         $intentId = (string) $request->query('payment_intent', '');
-        $returnTo = $request->session()->pull('coins.return_to') ?: route('dashboard', absolute: false);
+        $returnTo = $request->session()->get('coins.return_to') ?: route('dashboard', absolute: false);
 
         if ($intentId === '') {
             return redirect()->route('coins.purchase')->with('error', 'Brak informacji o płatności.');
@@ -112,9 +118,20 @@ class CoinPurchaseController extends Controller
         $user = $request->user();
         $package = config('coins.packages.'.($intent->metadata['package_id'] ?? ''));
 
-        if ($intent->status !== 'succeeded' || ! $package || (int) ($intent->metadata['user_id'] ?? 0) !== $user->id) {
+        if (! $package || (int) ($intent->metadata['user_id'] ?? 0) !== $user->id) {
             return redirect()->route('coins.purchase')->with('error', 'Płatność nie została zakończona.');
         }
+
+        // BLIK is approved in the bank's app, so the payment can still be on its way.
+        if (in_array($intent->status, ['processing', 'requires_action'], true)) {
+            return redirect()->route('coins.purchase', ['pending' => $intent->id, 'tries' => (int) $request->query('tries', 0) + 1]);
+        }
+
+        if ($intent->status !== 'succeeded') {
+            return redirect()->route('coins.purchase')->with('error', 'Płatność nie została zakończona.');
+        }
+
+        $request->session()->forget('coins.return_to');
 
         $credited = DB::transaction(function () use ($user, $intent, $package) {
             User::whereKey($user->id)->lockForUpdate()->first();

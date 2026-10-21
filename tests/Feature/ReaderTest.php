@@ -120,3 +120,16 @@ it('still redirects links to a deleted edition', function () {
     $this->get('/books/5/pages/7')->assertRedirect('/books/9/pages/7');
     $this->get('/books/8')->assertRedirect('/books/9/pages/1');
 });
+
+it('keeps a pending BLIK payment on the coins page and offers BLIK at checkout', function () {
+    makeBook();
+    $user = User::factory()->create();
+
+    $page = $this->actingAs($user)->get('/coins/purchase?pending=pi_123abc&tries=3')->viewData('page');
+    expect($page['props']['pending'])->toBe(['id' => 'pi_123abc', 'tries' => 3]);
+
+    $page = $this->actingAs($user)->get('/coins/purchase?pending=../evil')->viewData('page');
+    expect($page['props']['pending'])->toBeNull();
+
+    expect(config('coins.payment_methods'))->toContain('blik', 'card');
+});

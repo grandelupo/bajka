@@ -11,7 +11,7 @@ import type { SharedData } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { loadStripe, type Stripe, type StripeElements } from '@stripe/stripe-js';
 import { ArrowLeft, Check, CircleAlert, Infinity as InfinityIcon, LoaderCircle, ShieldCheck, Sparkles } from 'lucide-vue-next';
-import { computed, nextTick, onMounted, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 
 interface Package {
     id: string;
@@ -25,6 +25,7 @@ const props = defineProps<{
     stripeKey: string | null;
     returnTo?: string | null;
     pricePerPage: number;
+    pending?: { id: string; tries: number } | null;
 }>();
 
 const page = usePage<SharedData>();
@@ -42,13 +43,26 @@ const preparing = ref(false);
 const processing = ref(false);
 const error = ref<string | null>(null);
 const paymentPanel = ref<HTMLElement | null>(null);
+const method = ref<string | null>(null);
 
 let stripe: Stripe | null = null;
 let elements: StripeElements | null = null;
 
+// A BLIK payment the bank has not approved yet: ask the server again every
+// few seconds, for about two minutes, then let the reader check by hand.
+const POLL_TRIES = 40;
+const confirmUrl = (id: string, tries = 0) => route('coins.purchase.confirm', { payment_intent: id, tries });
+const pendingTimedOut = computed(() => !!props.pending && props.pending.tries >= POLL_TRIES);
+let pollTimer = 0;
+
 onMounted(async () => {
+    if (props.pending && !pendingTimedOut.value) {
+        pollTimer = window.setTimeout(() => router.visit(confirmUrl(props.pending!.id, props.pending!.tries), { replace: true }), 3000);
+    }
     if (props.stripeKey) stripe = await loadStripe(props.stripeKey);
 });
+
+onBeforeUnmount(() => clearTimeout(pollTimer));
 
 async function choose(pkg: Package, event: MouseEvent) {
     if (preparing.value || processing.value) return;
@@ -66,7 +80,9 @@ async function choose(pkg: Package, event: MouseEvent) {
     await nextTick();
     paymentPanel.value?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-    const { ok, data } = await postJson<{ clientSecret?: string; message?: string }>(route('transactions.create-payment-intent'), { package_id: pkg.id });
+    const { ok, data } = await postJson<{ clientSecret?: string; message?: string }>(route('transactions.create-payment-intent'), {
+        package_id: pkg.id,
+    });
     if (!ok || !data.clientSecret) {
         preparing.value = false;
         error.value = data.message ?? 'Nie udało się rozpocząć płatności.';
@@ -99,7 +115,13 @@ async function choose(pkg: Package, event: MouseEvent) {
 
     const container = document.getElementById('payment-element');
     if (container) container.innerHTML = '';
-    elements.create('payment', { layout: 'tabs' }).mount('#payment-element');
+    const user = page.props.auth.user;
+    const element = elements.create('payment', {
+        layout: 'tabs',
+        defaultValues: user ? { billingDetails: { email: user.email, name: user.name } } : undefined,
+    });
+    element.on('change', (event) => (method.value = event.value.type));
+    element.mount('#payment-element');
     preparing.value = false;
 }
 
@@ -120,7 +142,7 @@ async function pay() {
         return;
     }
 
-    if (paymentIntent) router.visit(route('coins.purchase.confirm', { payment_intent: paymentIntent.id }));
+    if (paymentIntent) router.visit(confirmUrl(paymentIntent.id));
 }
 </script>
 
@@ -133,11 +155,15 @@ async function pay() {
             <div class="wrap shop-hero__inner">
                 <Link v-if="returnTo" :href="returnTo" class="shop-hero__back" v-reveal><ArrowLeft class="h-4 w-4" /> Wróć do czytania</Link>
                 <p class="eyebrow" v-reveal>Sakiewka</p>
-                <h1 class="h1" v-reveal:words><SplitText text="Monety na" /> <em class="italic-wonk"><SplitText text="kolejne strony" :offset="2" /></em></h1>
+                <h1 class="h1" v-reveal:words>
+                    <SplitText text="Monety na" /> <em class="italic-wonk"><SplitText text="kolejne strony" :offset="2" /></em>
+                </h1>
                 <p class="lead" v-reveal="0.2">
                     Jedna strona to {{ pricePerPage }} monet. Raz odblokowana zostaje Twoja na zawsze — możesz do niej wracać ile chcesz.
                 </p>
-                <div class="shop-hero__balance" v-reveal:pop="0.3"><CoinIcon /> Masz teraz <strong>{{ coins }}</strong> monet</div>
+                <div class="shop-hero__balance" v-reveal:pop="0.3">
+                    <CoinIcon /> Masz teraz <strong>{{ coins }}</strong> monet
+                </div>
             </div>
             <div class="shop-hero__pile" aria-hidden="true">
                 <CoinIcon v-for="i in 7" :key="i" class="pile-coin" :style="{ '--i': i }" />
@@ -170,6 +196,20 @@ async function pay() {
                 </button>
             </div>
 
+            <div v-if="pending" class="pay card pay--pending">
+                <template v-if="!pendingTimedOut">
+                    <LoaderCircle class="pay__spinner animate-spin" />
+                    <h2 class="h3">Czekamy na potwierdzenie płatności</h2>
+                    <p>Zatwierdź płatność BLIK w aplikacji swojego banku. Monety dopiszemy, gdy tylko bank ją potwierdzi.</p>
+                </template>
+                <template v-else>
+                    <CircleAlert class="pay__spinner" />
+                    <h2 class="h3">Bank jeszcze nie potwierdził płatności</h2>
+                    <p>Jeśli płatność została zatwierdzona, sprawdź ponownie za chwilę — monety pojawią się w sakiewce.</p>
+                    <Link :href="confirmUrl(pending.id, POLL_TRIES - 1)" class="btn btn--gold btn--sm">Sprawdź ponownie</Link>
+                </template>
+            </div>
+
             <Transition name="panel">
                 <div v-if="selected" ref="paymentPanel" class="pay card">
                     <header class="pay__head">
@@ -184,8 +224,17 @@ async function pay() {
                     <div id="payment-element" class="pay__element" :class="{ 'is-hidden': preparing }" />
 
                     <p v-if="error" class="pay__error"><CircleAlert class="h-5 w-5 flex-none" /> {{ error }}</p>
+                    <p v-else-if="processing && method === 'blik'" class="pay__note pay__note--blik">
+                        Otwórz aplikację banku i zatwierdź płatność BLIK.
+                    </p>
 
-                    <button type="button" class="btn btn--gold btn--block btn--shine" :disabled="preparing || processing || !!error && !stripe" data-sfx="none" @click="pay">
+                    <button
+                        type="button"
+                        class="btn btn--gold btn--block btn--shine"
+                        :disabled="preparing || processing || (!!error && !stripe)"
+                        data-sfx="none"
+                        @click="pay"
+                    >
                         <LoaderCircle v-if="processing" class="animate-spin" />
                         <Sparkles v-else />
                         Zapłać {{ zl(selected.price) }} zł
@@ -195,9 +244,15 @@ async function pay() {
             </Transition>
 
             <ul class="perks">
-                <li v-reveal><ShieldCheck /> <span><strong>Bezpieczne płatności</strong> obsługuje Stripe — nie widzimy danych Twojej karty.</span></li>
-                <li v-reveal="0.08"><InfinityIcon /> <span><strong>Monety nie wygasają.</strong> Wydajesz je, kiedy chcesz.</span></li>
-                <li v-reveal="0.16"><Check /> <span><strong>Strona zostaje Twoja</strong> — za odblokowaną stronę nie płacisz drugi raz.</span></li>
+                <li v-reveal>
+                    <ShieldCheck /> <span><strong>Bezpieczne płatności</strong> obsługuje Stripe — nie widzimy danych Twojej karty.</span>
+                </li>
+                <li v-reveal="0.08">
+                    <InfinityIcon /> <span><strong>Monety nie wygasają.</strong> Wydajesz je, kiedy chcesz.</span>
+                </li>
+                <li v-reveal="0.16">
+                    <Check /> <span><strong>Strona zostaje Twoja</strong> — za odblokowaną stronę nie płacisz drugi raz.</span>
+                </li>
             </ul>
         </section>
     </AppLayout>
@@ -453,6 +508,7 @@ async function pay() {
 }
 
 .pay__total {
+    white-space: nowrap;
     font-family: var(--font-display);
     font-size: 2rem;
     font-weight: 600;
@@ -488,6 +544,32 @@ async function pay() {
     font-size: 0.88rem;
     font-weight: 700;
     color: var(--ink-soft);
+}
+
+.pay__note--blik {
+    padding: 0.8rem 1rem;
+    border-radius: 1rem;
+    background: var(--gold-soft);
+    color: var(--ink);
+    font-size: 0.95rem;
+}
+
+.pay--pending {
+    justify-items: center;
+    gap: 0.75rem;
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 2.5rem;
+}
+
+.pay--pending p {
+    color: var(--ink-soft);
+}
+
+.pay__spinner {
+    width: 2.5rem;
+    height: 2.5rem;
+    color: var(--gold);
 }
 
 .panel-enter-active {

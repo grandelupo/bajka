@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import CoinIcon from '@/components/story/CoinIcon.vue';
 import Dragon from '@/components/story/Dragon.vue';
-import type { ReaderPage } from '@/types';
+import type { PageSplit, ReaderPage } from '@/types';
 import { Link } from '@inertiajs/vue3';
 import { Image as ImageIcon, LoaderCircle, Lock, X } from 'lucide-vue-next';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
@@ -11,6 +11,10 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
  * the last page — has to fit the paper exactly: the reader never scrolls.
  * So after every layout the text is sized down (and the picture shrunk, or
  * tucked behind a button) until everything sits on the page.
+ *
+ * On a phone ("paged") the picture is never hidden or squeezed: a page that
+ * will not fit at a comfortable size is cut, between sentences, into parts —
+ * 26A with the whole picture, 26B with the rest of the words.
  */
 const props = withDefaults(
     defineProps<{
@@ -35,16 +39,23 @@ const props = withDefaults(
         registeredFreePages?: number;
         /** The facing page already shows the lock card; this one just teases. */
         teaser?: boolean;
+        /** May be cut into parts instead of shrinking (the one-page layout). */
+        paged?: boolean;
+        /** Where this page is cut, once measured; until then it measures itself and emits `split`. */
+        split?: PageSplit | null;
+        /** Which part to show; -1 is the last one. */
+        part?: number;
     }>(),
-    { isEnd: false, still: false, narrating: false, narrationProgress: 0, chapterNumber: null },
+    { isEnd: false, still: false, narrating: false, narrationProgress: 0, chapterNumber: null, paged: false, split: null, part: 0 },
 );
 
-const emit = defineEmits<{ unlock: []; 'update:autoUnlock': [value: boolean]; restart: [] }>();
+const emit = defineEmits<{ unlock: []; 'update:autoUnlock': [value: boolean]; restart: []; split: [value: PageSplit] }>();
 
 const root = ref<HTMLElement | null>(null);
 const inner = ref<HTMLElement | null>(null);
 const text = ref<HTMLElement | null>(null);
 const figure = ref<HTMLElement | null>(null);
+const bodyEl = ref<HTMLElement | null>(null);
 
 const mediaFits = ref(true);
 const showMedia = ref(false);
@@ -53,17 +64,64 @@ const videoReady = ref(false);
 
 const readable = computed(() => !!props.page && !props.page.locked && props.page.content !== null);
 
-const body = computed(() => {
-    const content = props.page?.content ?? '';
-    return content
+/* The words, as sentences: a page can only be cut between them. */
+interface Sentence {
+    para: number;
+    first: boolean;
+    text: string;
+}
+
+function sentencesOf(paragraph: string): string[] {
+    const out: string[] = [];
+    for (const piece of paragraph.split(/(?<=[.!?…]["”»)]?\s+)/)) {
+        // never cut inside <b>…</b> or <i>…</i>, nor before "– zapytał"
+        const open = (s: string) => (s.match(/<[bi]>/g)?.length ?? 0) - (s.match(/<\/[bi]>/g)?.length ?? 0);
+        const said = /^[–-]\s*\p{Ll}/u.test(piece);
+        if (out.length && (open(out[out.length - 1]) > 0 || said)) out[out.length - 1] += piece;
+        else out.push(piece);
+    }
+    return out;
+}
+
+const sentences = computed<Sentence[]>(() =>
+    (props.page?.content ?? '')
         .replace(/\[chapter\][\s\S]*?\[\/chapter\]/, '')
         .trim()
         .split(/\n\s*\n/)
         .map((p) => p.trim())
         .filter(Boolean)
-        .map((p) => `<p>${p.replace(/\n/g, '<br>')}</p>`)
-        .join('');
+        .flatMap((p, para) => sentencesOf(p).map((text, i) => ({ para, first: i === 0, text }))),
+);
+
+/** Sentences [from, to) as paragraphs; one carried over from the part before is not indented. */
+function html(from: number, to: number) {
+    let out = '';
+    let open = -1;
+    for (const s of sentences.value.slice(from, to)) {
+        if (s.para !== open) {
+            if (open >= 0) out += '</p>';
+            out += s.first ? '<p>' : '<p class="cont">';
+            open = s.para;
+        }
+        out += s.text.replace(/\n/g, '<br>');
+    }
+    return open >= 0 ? `${out}</p>` : '';
+}
+
+// Measuring: a paged page whose cuts are not known yet is laid out whole first.
+const measuring = computed(() => props.paged && readable.value && !props.split);
+const partCount = computed(() => props.split?.starts.length ?? 1);
+const partIndex = computed(() => {
+    if (!props.split) return 0;
+    return props.part < 0 ? partCount.value - 1 : Math.min(props.part, partCount.value - 1);
 });
+const body = computed(() => {
+    const starts = props.split?.starts ?? [0];
+    const k = partIndex.value;
+    return html(starts[k] ?? 0, starts[k + 1] ?? sentences.value.length);
+});
+const firstPart = computed(() => partIndex.value === 0);
+const folio = computed(() => (partCount.value > 1 ? `${props.number}${String.fromCharCode(65 + partIndex.value)}` : String(props.number)));
 
 function fit() {
     const box = inner.value;
@@ -79,8 +137,9 @@ function fit() {
 
     const fig = figure.value;
     const maxSize = Math.min(21, Math.max(15, W / 22));
+    const minSize = Math.max(15, maxSize - 3);
     const fits = () => t.offsetHeight <= H;
-    const done = (media: 'block' | 'float' | 'none') => {
+    const done = (media: 'block' | 'float' | 'square' | 'none') => {
         t.dataset.media = media;
         mediaFits.value = media !== 'none' || !fig;
         fitted.value = true;
@@ -88,13 +147,38 @@ function fit() {
         root.value?.classList.add('is-fitted');
     };
 
+    if (props.paged) {
+        // The whole picture, square, as wide as the page allows.
+        const side = Math.floor(Math.min(W, H * 0.5));
+        const square = () => {
+            if (!fig) return;
+            t.dataset.media = 'square';
+            fig.style.width = fig.style.height = `${side}px`;
+        };
+
+        if (measuring.value) {
+            emit('split', cuts(t, square, minSize, fits));
+            return; // laid out again as soon as the cuts come back
+        }
+
+        if (fig) square();
+        else t.dataset.media = 'none';
+        let size = maxSize;
+        t.style.fontSize = `${size}px`;
+        while (!fits() && size > 12) {
+            size -= 0.5;
+            t.style.fontSize = `${size}px`;
+        }
+        return done(fig ? 'square' : 'none');
+    }
+
     if (fig) {
         // 1. The picture across the page, above comfortable text.
         t.dataset.media = 'block';
         fig.style.width = '';
         const floor = Math.max(H * 0.28, 110);
         fig.style.height = `${floor}px`;
-        for (let size = maxSize; size >= Math.max(15, maxSize - 3); size -= 0.5) {
+        for (let size = maxSize; size >= minSize; size -= 0.5) {
             t.style.fontSize = `${size}px`;
             if (fits()) {
                 fig.style.height = `${Math.min(floor + H - t.offsetHeight, H * 0.56, W * 0.85)}px`;
@@ -125,6 +209,58 @@ function fit() {
     done('none');
 }
 
+/**
+ * Where to cut a paged page: fill the first part (title, picture, words) and
+ * each next one (words only) with as many sentences as fit at `size`.
+ */
+function cuts(t: HTMLElement, square: () => void, size: number, fits: () => boolean): PageSplit {
+    const el = bodyEl.value!;
+    const head = t.querySelector<HTMLElement>('.bp__chapter');
+    const fig = figure.value;
+    const all = sentences.value;
+    const kept = el.innerHTML;
+    t.style.fontSize = `${size}px`;
+
+    const starts = [0];
+    for (let from = 0, part = 0; from < all.length; part++) {
+        // later parts have no title and no picture
+        if (head) head.style.display = part ? 'none' : '';
+        if (fig) fig.style.display = part ? 'none' : '';
+        if (part === 0) square();
+        else t.dataset.media = 'none';
+
+        const fitsUpTo = (to: number) => {
+            el.innerHTML = html(from, to);
+            return fits();
+        };
+        if (fitsUpTo(all.length)) break;
+        // the most sentences that fit; on a tiny page the picture may have its
+        // part to itself, otherwise at least one sentence, so the page moves on
+        let lo = from + 1;
+        let hi = all.length - 1;
+        if (!fitsUpTo(lo)) {
+            if (part === 0 && (fig || head)) lo = from;
+        } else {
+            while (lo < hi) {
+                const mid = Math.ceil((lo + hi) / 2);
+                if (fitsUpTo(mid)) lo = mid;
+                else hi = mid - 1;
+            }
+        }
+        starts.push(lo);
+        from = lo;
+    }
+
+    el.innerHTML = kept;
+    if (head) head.style.display = '';
+    if (fig) fig.style.display = '';
+
+    const lengths = all.map((s) => s.text.replace(/<[^>]+>/g, '').length);
+    const total = lengths.reduce((a, b) => a + b, 0) || 1;
+    const at = starts.map((start) => lengths.slice(0, start).reduce((a, b) => a + b, 0) / total);
+    return { starts, at };
+}
+
 let observer: ResizeObserver | null = null;
 let raf = 0;
 const schedule = () => {
@@ -143,6 +279,16 @@ onBeforeUnmount(() => {
     observer?.disconnect();
     cancelAnimationFrame(raf);
 });
+
+// Another part of the same page, or its cuts just arrived / were dropped.
+watch(
+    () => [props.split, partIndex.value],
+    async () => {
+        fitted.value = false;
+        await nextTick();
+        fit();
+    },
+);
 
 watch(
     () => [props.page?.id, props.page?.content],
@@ -166,15 +312,23 @@ const coinsHref = computed(() => route('coins.purchase', { return: props.returnU
     <article
         ref="root"
         class="bp"
-        :class="[`bp--${side}`, { 'bp--chapter': page?.chapter && readable, 'bp--locked': lockKind, 'bp--end': isEnd, 'is-fitted': fitted, 'is-narrating': narrating }]"
+        :class="[
+            `bp--${side}`,
+            {
+                'bp--chapter': page?.chapter && readable && firstPart,
+                'bp--locked': lockKind,
+                'bp--end': isEnd,
+                'is-fitted': fitted,
+                'is-narrating': narrating,
+            },
+        ]"
     >
         <div class="bp__paper" />
 
         <!-- ── Readable page ───────────────────────────────────────── -->
         <div v-if="readable" ref="inner" class="bp__inner">
-
             <div ref="text" class="bp__text">
-                <header v-if="page!.chapter" class="bp__chapter">
+                <header v-if="page!.chapter && firstPart" class="bp__chapter">
                     <span v-if="chapterNumber" class="bp__chapter-no">Rozdział {{ chapterNumber }}</span>
                     <h2>{{ page!.chapter }}</h2>
                     <svg viewBox="0 0 120 12" aria-hidden="true">
@@ -182,7 +336,7 @@ const coinsHref = computed(() => route('coins.purchase', { return: props.returnU
                         <path d="M60 1 l3 5 -3 5 -3 -5 Z" fill="currentColor" />
                     </svg>
                 </header>
-                <figure v-if="page!.image" ref="figure" class="bp__figure">
+                <figure v-if="page!.image && firstPart" ref="figure" class="bp__figure">
                     <img :src="page!.image" alt="" draggable="false" />
                     <video
                         v-if="page!.video && !still"
@@ -196,7 +350,7 @@ const coinsHref = computed(() => route('coins.purchase', { return: props.returnU
                         @canplay="videoReady = true"
                     />
                 </figure>
-                <div class="bp__body" v-html="body" />
+                <div ref="bodyEl" class="bp__body" v-html="body" />
             </div>
         </div>
 
@@ -225,18 +379,29 @@ const coinsHref = computed(() => route('coins.purchase', { return: props.returnU
                 <template v-else>
                     <h3>Ta strona czeka na odblokowanie</h3>
                     <p>
-                        Każda strona to <strong>{{ pricePerPage }} monet</strong> i zostaje Twoja na zawsze. Masz
-                        <strong>{{ coins }}</strong>.
+                        Każda strona to <strong>{{ pricePerPage }} monet</strong> i zostaje Twoja na zawsze. Masz <strong>{{ coins }}</strong
+                        >.
                     </p>
                     <div v-if="!still" class="bp__lock-actions">
-                        <button v-if="canAfford" type="button" class="btn btn--gold btn--sm" data-sfx="none" :disabled="unlocking" @click="emit('unlock')">
+                        <button
+                            v-if="canAfford"
+                            type="button"
+                            class="btn btn--gold btn--sm"
+                            data-sfx="none"
+                            :disabled="unlocking"
+                            @click="emit('unlock')"
+                        >
                             <LoaderCircle v-if="unlocking" class="animate-spin" />
                             <CoinIcon v-else />
                             Odblokuj za {{ lockCost }}
                         </button>
                         <Link v-else :href="coinsHref" class="btn btn--gold btn--sm"><CoinIcon /> Zdobądź monety</Link>
                         <label class="bp__auto">
-                            <input type="checkbox" :checked="autoUnlock" @change="emit('update:autoUnlock', ($event.target as HTMLInputElement).checked)" />
+                            <input
+                                type="checkbox"
+                                :checked="autoUnlock"
+                                @change="emit('update:autoUnlock', ($event.target as HTMLInputElement).checked)"
+                            />
                             Odblokowuj kolejne strony od razu
                         </label>
                     </div>
@@ -259,12 +424,12 @@ const coinsHref = computed(() => route('coins.purchase', { return: props.returnU
         <div v-else class="bp__blank" />
 
         <footer v-if="page || isEnd" class="bp__folio">
-            <span v-if="!isEnd">{{ number }}</span>
+            <span v-if="!isEnd">{{ folio }}</span>
             <span v-else>✦</span>
         </footer>
 
         <!-- The picture, when it did not fit beside the text -->
-        <template v-if="readable && page!.image && !mediaFits && !still">
+        <template v-if="readable && page!.image && !mediaFits && !still && !paged">
             <button type="button" class="bp__peek" title="Pokaż ilustrację" data-sfx="whoosh" @click="showMedia = true"><ImageIcon /></button>
             <Transition name="peek">
                 <div v-if="showMedia" class="bp__overlay" @click="showMedia = false">
@@ -275,9 +440,7 @@ const coinsHref = computed(() => route('coins.purchase', { return: props.returnU
             </Transition>
         </template>
 
-        <span v-if="narrating" class="bp__narration" aria-hidden="true">
-            <i /><i /><i /><i />
-        </span>
+        <span v-if="narrating" class="bp__narration" aria-hidden="true"> <i /><i /><i /><i /> </span>
         <span v-if="narrating" class="bp__narration-bar" :style="{ transform: `scaleX(${narrationProgress})` }" />
     </article>
 </template>
@@ -295,8 +458,7 @@ const coinsHref = computed(() => route('coins.purchase', { return: props.returnU
 .bp__paper {
     position: absolute;
     inset: 0;
-    background:
-        radial-gradient(120% 90% at 50% 40%, #fffdf6 0%, #fbf3e1 70%, #f3e6c8 100%);
+    background: radial-gradient(120% 90% at 50% 40%, #fffdf6 0%, #fbf3e1 70%, #f3e6c8 100%);
 }
 
 /* Shading towards the spine, and a faint print texture */
@@ -411,6 +573,19 @@ const coinsHref = computed(() => route('coins.purchase', { return: props.returnU
     margin-bottom: 1.1em;
 }
 
+/* The whole (square) picture, centred above the words: a phone's page. */
+.bp__text[data-media='square'] {
+    display: flex;
+    flex-direction: column;
+}
+
+.bp__text[data-media='square'] .bp__figure {
+    display: block;
+    order: -1;
+    align-self: center;
+    margin-bottom: 1.1em;
+}
+
 /* Picture in the outer corner, the words flowing round it. */
 .bp__text[data-media='float'] .bp__figure {
     display: block;
@@ -429,7 +604,8 @@ const coinsHref = computed(() => route('coins.purchase', { return: props.returnU
     text-indent: 1.2em;
 }
 
-.bp__body :deep(p:first-child) {
+.bp__body :deep(p:first-child),
+.bp__body :deep(p.cont) {
     text-indent: 0;
 }
 
@@ -678,9 +854,7 @@ const coinsHref = computed(() => route('coins.purchase', { return: props.returnU
 .bp__blank {
     position: absolute;
     inset: 0;
-    background:
-        repeating-linear-gradient(45deg, rgb(21 50 47 / 0.05) 0 2px, transparent 2px 14px),
-        #efe3c6;
+    background: repeating-linear-gradient(45deg, rgb(21 50 47 / 0.05) 0 2px, transparent 2px 14px), #efe3c6;
 }
 
 /* ── Picture on demand ─────────────────────────────────────────────── */

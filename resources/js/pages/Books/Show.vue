@@ -9,7 +9,7 @@ import SoundToggle from '@/components/story/SoundToggle.vue';
 import { postJson } from '@/lib/http';
 import { ambienceScene, duckAmbience, play, preload, preloadAmbience, SCENES, setAmbience, type Scene } from '@/lib/sound';
 import { burstFrom, coinsFly } from '@/lib/sparkle';
-import type { ReaderPage, SharedData } from '@/types';
+import type { PageSplit, ReaderPage, SharedData } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { AudioLines, ChevronLeft, ChevronRight, Gauge, List, Lock, Pause, Play, X } from 'lucide-vue-next';
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
@@ -77,6 +77,22 @@ function measure() {
     }
 }
 
+/* ── Pages cut in parts ──────────────────────────────────────────────────
+   On one narrow page a long page is read in parts (26A, 26B). Each page
+   measures where it is cut the first time it is shown; a new size or the
+   real fonts arriving means measuring again. */
+const splits = reactive(new Map<number, PageSplit>());
+const partsOf = (n: number) => (spread.value ? 1 : (splits.get(n)?.starts.length ?? 1));
+const letter = (n: number, p: number) => (partsOf(n) > 1 ? String.fromCharCode(65 + (p < 0 ? partsOf(n) - 1 : p)) : '');
+
+watch([() => size.w, () => size.h, spread], () => splits.clear());
+
+function onSplit(n: number, split: PageSplit) {
+    splits.set(n, split);
+    if (n === current.value && (!flip.value || flip.value.settled))
+        part.value = part.value < 0 ? split.starts.length - 1 : Math.min(part.value, split.starts.length - 1);
+}
+
 /* ── Where we are ────────────────────────────────────────────────────── */
 const normalise = (n: number) => {
     const max = total.value + 1; // one past the last page is "the end"
@@ -85,10 +101,13 @@ const normalise = (n: number) => {
 };
 
 const current = ref(props.currentPageNumber);
+/** Which part of the current page (one-page layout); -1 is the last, before it is measured. */
+const part = ref(0);
 const step = computed(() => (spread.value ? 2 : 1));
 const lastStop = computed(() => normalise(total.value + 1));
-const canPrev = computed(() => current.value > 1);
-const canNext = computed(() => current.value < lastStop.value);
+const morePartsHere = computed(() => !spread.value && part.value >= 0 && part.value < partsOf(current.value) - 1);
+const canPrev = computed(() => current.value > 1 || part.value !== 0);
+const canNext = computed(() => current.value < lastStop.value || morePartsHere.value);
 
 const visibleNumbers = computed(() => (spread.value ? [current.value, current.value + 1] : [current.value]));
 const visiblePages = computed(() => visibleNumbers.value.map(pageAt).filter((p): p is ReaderPage => !!p));
@@ -98,7 +117,7 @@ const progressLabel = computed(() => {
     if (current.value > total.value) return 'Koniec';
     const a = current.value;
     const b = shownTo.value;
-    return a === b ? `${a} / ${total.value}` : `${a}–${b} / ${total.value}`;
+    return a === b ? `${a}${letter(a, part.value)} / ${total.value}` : `${a}–${b} / ${total.value}`;
 });
 
 const currentChapter = computed(() => chapterFor(current.value));
@@ -124,6 +143,8 @@ interface Flip {
     dir: 1 | -1;
     from: number;
     to: number;
+    fromPart: number;
+    toPart: number;
     /** Landed: the pages underneath already show the new spread, the leaf just lingers. */
     settled?: boolean;
 }
@@ -133,25 +154,33 @@ const FLIP_MS = 900;
 // What lies under the turning leaf, and what is printed on its two faces.
 const under = computed(() => {
     const f = flip.value;
-    if (!f || f.settled) return spread.value ? { left: current.value, right: current.value + 1, single: current.value } : { single: current.value };
+    if (!f || f.settled)
+        return spread.value
+            ? { left: current.value, right: current.value + 1, single: current.value, part: 0 }
+            : { single: current.value, part: part.value };
     if (spread.value) {
-        return f.dir === 1 ? { left: f.from, right: f.to + 1 } : { left: f.to, right: f.from + 1 };
+        return f.dir === 1 ? { left: f.from, right: f.to + 1, part: 0 } : { left: f.to, right: f.from + 1, part: 0 };
     }
-    return { single: f.dir === 1 ? f.to : f.from };
+    return f.dir === 1 ? { single: f.to, part: f.toPart } : { single: f.from, part: f.fromPart };
 });
 
 const leaf = computed(() => {
     const f = flip.value;
     if (!f) return null;
-    if (spread.value) return f.dir === 1 ? { front: f.from + 1, back: f.to } : { front: f.from, back: f.to + 1 };
-    return { front: f.dir === 1 ? f.from : f.to, back: null };
+    if (spread.value) return f.dir === 1 ? { front: f.from + 1, frontPart: 0, back: f.to } : { front: f.from, frontPart: 0, back: f.to + 1 };
+    return f.dir === 1 ? { front: f.from, frontPart: f.fromPart, back: null } : { front: f.to, frontPart: f.toPart, back: null };
 });
 
-function turnTo(target: number, { sound = true } = {}) {
+/** Turn to page `target` (and, on one page, to its part `toPart`; -1 is the last). */
+function turnTo(target: number, { sound = true, toPart = 0 } = {}) {
     target = normalise(target);
-    if (flip.value || target === current.value) return;
-    stopNarrationAudio();
-    flip.value = { dir: target > current.value ? 1 : -1, from: current.value, to: target };
+    if (spread.value) toPart = 0;
+    const samePage = target === current.value;
+    if (flip.value || (samePage && toPart === part.value)) return;
+    // Within one page the narration simply reads on.
+    if (!samePage) stopNarrationAudio();
+    const dir = target > current.value || (samePage && toPart > part.value) ? 1 : -1;
+    flip.value = { dir, from: current.value, to: target, fromPart: part.value, toPart };
     if (sound) void play('flip', { vary: 0.08 });
     flipTimer = setTimeout(finishFlip, FLIP_MS + 40);
 }
@@ -164,6 +193,8 @@ function finishFlip() {
     // few frames, until they have laid themselves out: no blink as it lifts.
     const landed = flip.value;
     current.value = landed.to;
+    const known = splits.get(landed.to);
+    part.value = landed.toPart < 0 && known ? known.starts.length - 1 : landed.toPart;
     flip.value = { ...landed, settled: true };
     void nextTick(() =>
         requestAnimationFrame(() =>
@@ -176,8 +207,14 @@ function finishFlip() {
     void afterArrive();
 }
 
-const next = () => canNext.value && turnTo(current.value + step.value);
-const prev = () => canPrev.value && turnTo(current.value - step.value);
+function next() {
+    if (morePartsHere.value) turnTo(current.value, { toPart: part.value + 1 });
+    else if (current.value < lastStop.value) turnTo(current.value + step.value);
+}
+function prev() {
+    if (!spread.value && part.value > 0) turnTo(current.value, { toPart: part.value - 1 });
+    else if (current.value > 1) turnTo(current.value - step.value, { toPart: spread.value ? 0 : -1 });
+}
 
 /* ── Unlocking with coins ────────────────────────────────────────────── */
 const AUTO_KEY = 'bajka:auto-unlock';
@@ -254,6 +291,18 @@ function ensureAudio() {
     audio.preload = 'auto';
     audio.addEventListener('timeupdate', () => {
         if (audio && audio.duration) narrationProgress.value = audio.currentTime / audio.duration;
+        // A page in parts: turn to the next part when the voice gets there.
+        const at = splits.get(current.value)?.at[part.value + 1];
+        if (
+            narrating.value &&
+            !flip.value &&
+            narratedPage.value === current.value &&
+            morePartsHere.value &&
+            at !== undefined &&
+            narrationProgress.value >= at
+        ) {
+            turnTo(current.value, { toPart: part.value + 1 });
+        }
     });
     audio.addEventListener('ended', onNarrationEnded);
     return audio;
@@ -265,12 +314,14 @@ function stopNarrationAudio() {
     narrationProgress.value = 0;
 }
 
-async function playPage(p: ReaderPage) {
+async function playPage(p: ReaderPage, from = 0) {
     const a = ensureAudio();
     narratedPage.value = p.page_number;
-    narrationProgress.value = 0;
+    narrationProgress.value = from;
     a.src = p.audio_url!;
     a.playbackRate = speed.value;
+    // Starting on a later part of the page: start where its words begin.
+    if (from > 0) a.addEventListener('loadedmetadata', () => (a.currentTime = from * a.duration), { once: true });
     try {
         await a.play();
     } catch {
@@ -282,7 +333,9 @@ async function playPage(p: ReaderPage) {
 async function playView() {
     queue = visiblePages.value.filter((p) => p.audio_url && !p.locked);
     const first = queue.shift();
-    if (first) await playPage(first);
+    const from =
+        !spread.value && part.value !== 0 ? (splits.get(current.value)?.at[part.value < 0 ? partsOf(current.value) - 1 : part.value] ?? 0) : 0;
+    if (first) await playPage(first, from);
     else narratedPage.value = null;
 }
 
@@ -294,8 +347,8 @@ function onNarrationEnded() {
     }
     narratedPage.value = null;
     narrationProgress.value = 0;
-    // Turn the page on our own, and keep reading on the other side.
-    if (narrating.value && canNext.value) setTimeout(() => narrating.value && next(), 600);
+    // Turn the page on our own (past any parts left), and keep reading on the other side.
+    if (narrating.value && current.value < lastStop.value) setTimeout(() => narrating.value && turnTo(current.value + step.value), 600);
     else narrating.value = false;
 }
 
@@ -322,6 +375,8 @@ function cycleSpeed() {
 async function afterArrive() {
     if (autoUnlock.value && lockedHere.value.length && coins.value >= lockCost.value) await unlock();
     if (narrating.value) {
+        // Moved to another part of the page being read: the voice just carries on.
+        if (narratedPage.value === current.value && audio && !audio.paused) return;
         if (visiblePages.value.some((p) => p.audio_url && !p.locked)) void playView();
         else narrating.value = false;
     }
@@ -425,6 +480,8 @@ onMounted(() => {
         if (wasSpread !== spread.value) current.value = normalise(current.value);
     });
     if (stage.value) resizeObserver.observe(stage.value);
+    // cuts measured with the fallback font would be off
+    void document.fonts?.ready.then(() => splits.clear());
     window.addEventListener('keydown', onKey);
     window.addEventListener('pointerdown', () => preload('flip', 'coin', 'unlock', 'sparkle'), { once: true });
     void afterArrive();
@@ -557,6 +614,9 @@ function onSlide(e: Event) {
                         :key="`S${under.single}`"
                         :page="pageAt(under.single!)"
                         :number="under.single!"
+                        paged
+                        :split="splits.get(under.single!) ?? null"
+                        :part="under.part"
                         side="single"
                         :is-end="under.single! > total"
                         :chapter-number="chapterNumberOf(under.single!)"
@@ -566,6 +626,7 @@ function onSlide(e: Event) {
                         v-model:auto-unlock="autoUnlock"
                         @unlock="unlock"
                         @restart="turnTo(1)"
+                        @split="onSplit(under.single!, $event)"
                     />
                 </div>
 
@@ -580,6 +641,10 @@ function onSlide(e: Event) {
                         <BookPage
                             :page="pageAt(leaf.front)"
                             :number="leaf.front"
+                            :paged="!spread"
+                            :split="spread ? null : (splits.get(leaf.front) ?? null)"
+                            :part="leaf.frontPart"
+                            @split="onSplit(leaf.front, $event)"
                             :side="spread ? (flip.dir === 1 ? 'right' : 'left') : 'single'"
                             :is-end="leaf.front > total"
                             :chapter-number="chapterNumberOf(leaf.front)"
@@ -925,9 +990,7 @@ function onSlide(e: Event) {
     position: absolute;
     inset: -10px -12px -12px;
     border-radius: 10px;
-    background:
-        linear-gradient(90deg, transparent 48.5%, rgb(0 0 0 / 0.35) 50%, transparent 51.5%),
-        linear-gradient(180deg, #7a3b26, #5a2a1b);
+    background: linear-gradient(90deg, transparent 48.5%, rgb(0 0 0 / 0.35) 50%, transparent 51.5%), linear-gradient(180deg, #7a3b26, #5a2a1b);
     box-shadow:
         0 40px 70px -30px rgb(0 0 0 / 0.75),
         0 14px 30px -10px rgb(0 0 0 / 0.5);
