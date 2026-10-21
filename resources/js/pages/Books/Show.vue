@@ -77,47 +77,178 @@ function measure() {
     }
 }
 
-/* ── Pages cut in parts ──────────────────────────────────────────────────
-   On one narrow page a long page is read in parts (26A, 26B). Each page
-   measures where it is cut the first time it is shown; a new size or the
-   real fonts arriving means measuring again. */
-const splits = reactive(new Map<number, PageSplit>());
-const partsOf = (n: number) => (spread.value ? 1 : (splits.get(n)?.starts.length ?? 1));
-const letter = (n: number, p: number) => (partsOf(n) > 1 ? String.fromCharCode(65 + (p < 0 ? partsOf(n) - 1 : p)) : '');
-
-watch([() => size.w, () => size.h, spread], () => splits.clear());
-
-function onSplit(n: number, split: PageSplit) {
-    splits.set(n, split);
-    if (n === current.value && (!flip.value || flip.value.settled))
-        part.value = part.value < 0 ? split.starts.length - 1 : Math.min(part.value, split.starts.length - 1);
+/* ── Laying the book out ─────────────────────────────────────────────────
+   The book is read as a row of faces. A page too long for a comfortable size
+   is cut into parts (26A, 26B). With two pages side by side its picture may
+   get a page of its own instead (a plate) — always on the left, facing the
+   page's own words. Which pages get one is chosen for the whole book at once,
+   so that as few pictures as possible end up small in a cut page. Every readable page is measured on a hidden page
+   whenever the size, the fonts or the pages change. */
+interface Face {
+    n: number;
+    part: number;
+    plate?: boolean;
+}
+interface Layout {
+    split: PageSplit;
+    plate: boolean;
 }
 
-/* ── Where we are ────────────────────────────────────────────────────── */
-const normalise = (n: number) => {
-    const max = total.value + 1; // one past the last page is "the end"
-    n = Math.max(1, Math.min(n, max));
-    return spread.value && n % 2 === 0 ? n - 1 : n;
+const measurer = ref<InstanceType<typeof BookPage> | null>(null);
+const MEASURE_PAGE: ReaderPage = {
+    id: 0,
+    page_number: 0,
+    chapter: '·',
+    content: '·',
+    audio_url: null,
+    image: 'data:image/gif;base64,R0lGODlhAQABAAAAACw=',
+    video: null,
+    locked: null,
+    scene: null,
 };
+const layouts = reactive(new Map<number, Layout>());
+const faces = ref<Face[]>([...pages.map((p) => ({ n: p.page_number, part: 0 })), { n: pages.length + 1, part: 0 }]);
+const laidOut = ref(false);
 
-const current = ref(props.currentPageNumber);
-/** Which part of the current page (one-page layout); -1 is the last, before it is measured. */
-const part = ref(0);
+/* ── Where we are ────────────────────────────────────────────────────── */
 const step = computed(() => (spread.value ? 2 : 1));
-const lastStop = computed(() => normalise(total.value + 1));
-const morePartsHere = computed(() => !spread.value && part.value >= 0 && part.value < partsOf(current.value) - 1);
-const canPrev = computed(() => current.value > 1 || part.value !== 0);
-const canNext = computed(() => current.value < lastStop.value || morePartsHere.value);
+const faceAt = (i: number) => faces.value[i] ?? null;
+// Two pages side by side always start on a left page.
+const evenize = (i: number) => {
+    i = Math.max(0, Math.min(i, faces.value.length - 1));
+    return spread.value ? i - (i % 2) : i;
+};
+const view = (i: number) => (spread.value ? [faceAt(i), faceAt(i + 1)] : [faceAt(i)]);
+const firstFaceOf = (n: number) =>
+    Math.max(
+        0,
+        faces.value.findIndex((f) => f.n === n),
+    );
 
-const visibleNumbers = computed(() => (spread.value ? [current.value, current.value + 1] : [current.value]));
+/** The first face on view. */
+const pos = ref(firstFaceOf(props.currentPageNumber));
+const current = computed(() => faceAt(pos.value)?.n ?? 1);
+const lastPos = computed(() => evenize(faces.value.length - 1));
+const canPrev = computed(() => pos.value > 0);
+const canNext = computed(() => pos.value < lastPos.value);
+
+const visibleFaces = computed(() => view(pos.value).filter((f): f is Face => !!f));
+const visibleNumbers = computed(() => [...new Set(visibleFaces.value.map((f) => f.n))]);
 const visiblePages = computed(() => visibleNumbers.value.map(pageAt).filter((p): p is ReaderPage => !!p));
-const shownTo = computed(() => Math.min(total.value, visibleNumbers.value[visibleNumbers.value.length - 1]));
+
+// Measuring with a fallback font would cut in the wrong places. The book's font
+// only loads once something asks for it, and its stylesheet may still be on the
+// way: keep asking for up to 2 s, then measure — and again whenever a font lands.
+const fontsReady = ref(false);
+const onFontLoaded = () => void nextTick(layOut);
+function loadFonts() {
+    const family = getComputedStyle(document.documentElement).getPropertyValue('--font-display').trim() || 'serif';
+    const name = family.split(',')[0].replace(/["']/g, '').trim();
+    const loaded = () => [...(document.fonts ?? [])].some((f) => f.family.replace(/["']/g, '') === name && f.status === 'loaded');
+    const waitForFont = async () => {
+        for (let tries = 0; tries < 20 && !loaded(); tries++) {
+            await Promise.all(['400', 'italic 600'].map((style) => document.fonts?.load(`${style} 16px ${family}`)));
+            if (!loaded()) await new Promise((done) => setTimeout(done, 100));
+        }
+    };
+    void waitForFont().then(() => {
+        fontsReady.value = true;
+        void nextTick(layOut);
+    });
+    document.fonts?.addEventListener('loadingdone', onFontLoaded);
+}
+
+function layOut() {
+    const m = measurer.value;
+    if (!m || !fontsReady.value) return;
+    const anchor = faceAt(pos.value);
+    layouts.clear();
+
+    // Each readable page measured twice: with its picture, and with the words alone.
+    const options = pages.map((page) => {
+        if (page.locked || page.content === null) return null;
+        const framed = m.measure(page, chapterNumberOf(page.page_number), true);
+        const bare = spread.value && page.image ? m.measure(page, chapterNumberOf(page.page_number), false) : null;
+        return { framed, bare };
+    });
+
+    // Cheapest way through the book from page i, starting on a left (0) or right (1) face.
+    // A cut page with a picture costs 2, a plate the page did not need costs 1.
+    const cost = (i: number) => (options[i]?.framed.starts.length ?? 1) > 1 && !!pages[i].image;
+    const best: number[][] = Array.from({ length: pages.length + 1 }, () => [0, 0]);
+    const plateAt: boolean[][] = Array.from({ length: pages.length }, () => [false, false]);
+    for (let i = pages.length - 1; i >= 0; i--) {
+        const o = options[i];
+        for (const side of [0, 1]) {
+            const faces = o?.framed.starts.length ?? 1;
+            let value = (cost(i) ? 2 : 0) + best[i + 1][(side + faces) % 2];
+            if (o?.bare && side === 0) {
+                const plated = (cost(i) ? 0 : 1) + best[i + 1][(1 + o.bare.starts.length) % 2];
+                if (plated < value) {
+                    value = plated;
+                    plateAt[i][side] = true;
+                }
+            }
+            best[i][side] = value;
+        }
+    }
+
+    const list: Face[] = [];
+    pages.forEach((page, i) => {
+        const n = page.page_number;
+        const o = options[i];
+        if (!o) {
+            list.push({ n, part: 0 });
+            return;
+        }
+        const plate = spread.value && plateAt[i][list.length % 2];
+        const layout: Layout = plate ? { split: o.bare!, plate: true } : { split: o.framed, plate: false };
+        if (plate) list.push({ n, part: 0, plate: true });
+        layouts.set(n, layout);
+        layout.split.starts.forEach((_, part) => list.push({ n, part }));
+    });
+    list.push({ n: total.value + 1, part: 0 });
+    faces.value = list;
+
+    // stay on what was being read
+    let i = anchor ? list.findIndex((f) => f.n === anchor.n && f.part === anchor.part && !!f.plate === !!anchor.plate) : -1;
+    if (i < 0) i = anchor ? firstFaceOf(anchor.n) : 0;
+    pos.value = evenize(i);
+    laidOut.value = true;
+}
+
+watch([() => size.w, () => size.h, spread], () => void nextTick(layOut), { flush: 'post' });
+
+/** The number printed on a face: 26, or 26A / 26B for a page in parts; none on a picture. */
+function folioOf(f: Face) {
+    if (f.plate) return null;
+    const parts = layouts.get(f.n)?.split.starts.length ?? 1;
+    return parts > 1 ? `${f.n}${String.fromCharCode(65 + f.part)}` : String(f.n);
+}
+
+/** What a BookPage needs to show a face (or the blank inside of the cover). */
+function face(f: Face | null | undefined) {
+    if (!f) return { page: null, number: total.value + 2, isEnd: false };
+    const layout = layouts.get(f.n);
+    return {
+        page: pageAt(f.n),
+        number: f.n,
+        isEnd: f.n > total.value,
+        chapterNumber: chapterNumberOf(f.n),
+        split: layout?.split ?? null,
+        part: f.part,
+        plate: !!f.plate,
+        noFigure: !!layout?.plate,
+        folio: folioOf(f),
+    };
+}
+const faceKey = (f: Face | null | undefined) => (f ? `${f.n}.${f.part}${f.plate ? 'p' : ''}` : 'blank');
 
 const progressLabel = computed(() => {
     if (current.value > total.value) return 'Koniec';
-    const a = current.value;
-    const b = shownTo.value;
-    return a === b ? `${a}${letter(a, part.value)} / ${total.value}` : `${a}–${b} / ${total.value}`;
+    const shown = visibleFaces.value.filter((f) => f.n <= total.value && !f.plate);
+    const labels = [...new Set(shown.map((f) => (shown.every((g) => g.n === f.n) ? String(f.n) : folioOf(f))))];
+    return `${labels.length > 1 ? `${labels[0]}–${labels[labels.length - 1]}` : labels[0]} / ${total.value}`;
 });
 
 const currentChapter = computed(() => chapterFor(current.value));
@@ -139,51 +270,69 @@ watch(current, (n) => {
 });
 
 /* ── Turning pages ───────────────────────────────────────────────────── */
+interface Faces {
+    left?: Face | null;
+    right?: Face | null;
+    single?: Face | null;
+}
 interface Flip {
     dir: 1 | -1;
-    from: number;
-    to: number;
-    fromPart: number;
-    toPart: number;
+    to: Face | null;
+    toPos: number;
+    /** What lies under the turning leaf, and what is printed on its two faces. */
+    under: Faces;
+    leaf: { front: Face | null; back: Face | null };
     /** Landed: the pages underneath already show the new spread, the leaf just lingers. */
     settled?: boolean;
 }
 const flip = ref<Flip | null>(null);
 const FLIP_MS = 900;
 
-// What lies under the turning leaf, and what is printed on its two faces.
-const under = computed(() => {
+const under = computed<Faces>(() => {
     const f = flip.value;
-    if (!f || f.settled)
-        return spread.value
-            ? { left: current.value, right: current.value + 1, single: current.value, part: 0 }
-            : { single: current.value, part: part.value };
-    if (spread.value) {
-        return f.dir === 1 ? { left: f.from, right: f.to + 1, part: 0 } : { left: f.to, right: f.from + 1, part: 0 };
-    }
-    return f.dir === 1 ? { single: f.to, part: f.toPart } : { single: f.from, part: f.fromPart };
+    if (f && !f.settled) return f.under;
+    return { left: faceAt(pos.value), right: faceAt(pos.value + 1), single: faceAt(pos.value) };
 });
+const leaf = computed(() => flip.value?.leaf ?? null);
 
-const leaf = computed(() => {
-    const f = flip.value;
-    if (!f) return null;
-    if (spread.value) return f.dir === 1 ? { front: f.from + 1, frontPart: 0, back: f.to } : { front: f.from, frontPart: 0, back: f.to + 1 };
-    return f.dir === 1 ? { front: f.from, frontPart: f.fromPart, back: null } : { front: f.to, frontPart: f.toPart, back: null };
-});
-
-/** Turn to page `target` (and, on one page, to its part `toPart`; -1 is the last). */
-function turnTo(target: number, { sound = true, toPart = 0 } = {}) {
-    target = normalise(target);
-    if (spread.value) toPart = 0;
-    const samePage = target === current.value;
-    if (flip.value || (samePage && toPart === part.value)) return;
-    // Within one page the narration simply reads on.
-    if (!samePage) stopNarrationAudio();
-    const dir = target > current.value || (samePage && toPart > part.value) ? 1 : -1;
-    flip.value = { dir, from: current.value, to: target, fromPart: part.value, toPart };
+function turnToPos(target: number, { sound = true } = {}) {
+    target = evenize(target);
+    const from = pos.value;
+    if (flip.value || target === from) return;
+    // The page being read aloud still on view (its next part): the voice reads on.
+    const keep = narratedPage.value !== null && view(target).some((f) => f?.n === narratedPage.value);
+    if (!keep) stopNarrationAudio();
+    const dir = target > from ? 1 : -1;
+    const turning: Flip = spread.value
+        ? dir === 1
+            ? {
+                  dir,
+                  to: faceAt(target),
+                  toPos: target,
+                  under: { left: faceAt(from), right: faceAt(target + 1) },
+                  leaf: { front: faceAt(from + 1), back: faceAt(target) },
+              }
+            : {
+                  dir,
+                  to: faceAt(target),
+                  toPos: target,
+                  under: { left: faceAt(target), right: faceAt(from + 1) },
+                  leaf: { front: faceAt(from), back: faceAt(target + 1) },
+              }
+        : {
+              dir,
+              to: faceAt(target),
+              toPos: target,
+              under: { single: faceAt(dir === 1 ? target : from) },
+              leaf: { front: faceAt(dir === 1 ? from : target), back: null },
+          };
+    flip.value = turning;
     if (sound) void play('flip', { vary: 0.08 });
     flipTimer = setTimeout(finishFlip, FLIP_MS + 40);
 }
+
+/** Turn to the first face of page `n`. */
+const turnTo = (n: number, options?: { sound?: boolean }) => turnToPos(firstFaceOf(n), options);
 
 let flipTimer: ReturnType<typeof setTimeout> | undefined;
 function finishFlip() {
@@ -192,14 +341,13 @@ function finishFlip() {
     // Swap the pages underneath first and keep the finished leaf on top for a
     // few frames, until they have laid themselves out: no blink as it lifts.
     const landed = flip.value;
-    current.value = landed.to;
-    const known = splits.get(landed.to);
-    part.value = landed.toPart < 0 && known ? known.starts.length - 1 : landed.toPart;
+    const i = landed.to ? faces.value.indexOf(landed.to) : -1;
+    pos.value = evenize(i >= 0 ? i : landed.toPos);
     flip.value = { ...landed, settled: true };
     void nextTick(() =>
         requestAnimationFrame(() =>
             requestAnimationFrame(() => {
-                if (flip.value === null || flip.value.to !== landed.to) return;
+                if (flip.value === null || flip.value.toPos !== landed.toPos) return;
                 flip.value = null;
             }),
         ),
@@ -207,14 +355,8 @@ function finishFlip() {
     void afterArrive();
 }
 
-function next() {
-    if (morePartsHere.value) turnTo(current.value, { toPart: part.value + 1 });
-    else if (current.value < lastStop.value) turnTo(current.value + step.value);
-}
-function prev() {
-    if (!spread.value && part.value > 0) turnTo(current.value, { toPart: part.value - 1 });
-    else if (current.value > 1) turnTo(current.value - step.value, { toPart: spread.value ? 0 : -1 });
-}
+const next = () => canNext.value && turnToPos(pos.value + step.value);
+const prev = () => canPrev.value && turnToPos(pos.value - step.value);
 
 /* ── Unlocking with coins ────────────────────────────────────────────── */
 const AUTO_KEY = 'bajka:auto-unlock';
@@ -265,6 +407,7 @@ async function unlock() {
     if (shared.props.auth.user) shared.props.auth.user.coins = data.remaining_coins;
 
     await nextTick();
+    layOut(); // the words are in: measure the unlocked pages
     unlocking.value = false;
     void play('unlock');
     setTimeout(() => void play('sparkle'), 180);
@@ -280,6 +423,8 @@ const SPEEDS = [0.85, 1, 1.2];
 const speed = ref(1);
 let audio: HTMLAudioElement | null = null;
 let queue: ReaderPage[] = [];
+/** After the voice turned the page on its own: the page to read next. */
+let resumeFrom = 0;
 
 watch(narratedPage, (n) => duckAmbience(n !== null));
 
@@ -291,17 +436,14 @@ function ensureAudio() {
     audio.preload = 'auto';
     audio.addEventListener('timeupdate', () => {
         if (audio && audio.duration) narrationProgress.value = audio.currentTime / audio.duration;
-        // A page in parts: turn to the next part when the voice gets there.
-        const at = splits.get(current.value)?.at[part.value + 1];
-        if (
-            narrating.value &&
-            !flip.value &&
-            narratedPage.value === current.value &&
-            morePartsHere.value &&
-            at !== undefined &&
-            narrationProgress.value >= at
-        ) {
-            turnTo(current.value, { toPart: part.value + 1 });
+        // A page in parts: turn on when the voice reaches a part that is not on view.
+        const n = narratedPage.value;
+        const layout = n === null ? undefined : layouts.get(n);
+        if (narrating.value && !flip.value && layout) {
+            let k = 0;
+            layout.split.at.forEach((at, i) => narrationProgress.value >= at && (k = i));
+            const i = faces.value.findIndex((f) => f.n === n && f.part === k && !f.plate);
+            if (i >= pos.value + step.value) turnToPos(pos.value + step.value);
         }
     });
     audio.addEventListener('ended', onNarrationEnded);
@@ -330,11 +472,12 @@ async function playPage(p: ReaderPage, from = 0) {
     }
 }
 
-async function playView() {
-    queue = visiblePages.value.filter((p) => p.audio_url && !p.locked);
+/** Read what is on view (from page `fromPage` on); a page whose earlier parts are gone starts where its words on view begin. */
+async function playView(fromPage = 0) {
+    queue = visiblePages.value.filter((p) => p.audio_url && !p.locked && p.page_number >= fromPage);
     const first = queue.shift();
-    const from =
-        !spread.value && part.value !== 0 ? (splits.get(current.value)?.at[part.value < 0 ? partsOf(current.value) - 1 : part.value] ?? 0) : 0;
+    const lead = first && visibleFaces.value.find((f) => f.n === first.page_number && !f.plate);
+    const from = lead ? (layouts.get(lead.n)?.split.at[lead.part] ?? 0) : 0;
     if (first) await playPage(first, from);
     else narratedPage.value = null;
 }
@@ -345,11 +488,15 @@ function onNarrationEnded() {
         void playPage(nextPage);
         return;
     }
+    const done = narratedPage.value;
     narratedPage.value = null;
     narrationProgress.value = 0;
     // Turn the page on our own (past any parts left), and keep reading on the other side.
-    if (narrating.value && current.value < lastStop.value) setTimeout(() => narrating.value && turnTo(current.value + step.value), 600);
-    else narrating.value = false;
+    if (narrating.value && done !== null && canNext.value) {
+        resumeFrom = done + 1;
+        const target = evenize(firstFaceOf(done + 1));
+        setTimeout(() => narrating.value && turnToPos(target > pos.value ? target : pos.value + step.value), 600);
+    } else narrating.value = false;
 }
 
 function toggleNarration() {
@@ -375,9 +522,15 @@ function cycleSpeed() {
 async function afterArrive() {
     if (autoUnlock.value && lockedHere.value.length && coins.value >= lockCost.value) await unlock();
     if (narrating.value) {
-        // Moved to another part of the page being read: the voice just carries on.
-        if (narratedPage.value === current.value && audio && !audio.paused) return;
-        if (visiblePages.value.some((p) => p.audio_url && !p.locked)) void playView();
+        // Moved on within the page being read: the voice carries on, then reads the rest on view.
+        const n = narratedPage.value;
+        if (n !== null && audio && !audio.paused && visibleNumbers.value.includes(n)) {
+            queue = visiblePages.value.filter((p) => p.page_number > n && p.audio_url && !p.locked);
+            return;
+        }
+        const from = resumeFrom;
+        resumeFrom = 0;
+        if (visiblePages.value.some((p) => p.audio_url && !p.locked && p.page_number >= from)) void playView(from);
         else narrating.value = false;
     }
 }
@@ -396,7 +549,7 @@ try {
 const sceneOf = (n: number) => (pageAt(n)?.scene ?? null) as Scene | null;
 // Follow the page being read aloud; otherwise the spread we are on (or turning to).
 const scene = computed<Scene>(() => {
-    const n = narratedPage.value ?? flip.value?.to ?? current.value;
+    const n = narratedPage.value ?? flip.value?.to?.n ?? current.value;
     const s = sceneOf(n) ?? sceneOf(n + 1) ?? sceneOf(Math.min(n, total.value));
     return s && s in SCENES ? s : 'fireplace';
 });
@@ -473,15 +626,9 @@ let resizeObserver: ResizeObserver | null = null;
 
 onMounted(() => {
     measure();
-    current.value = normalise(current.value);
-    resizeObserver = new ResizeObserver(() => {
-        const wasSpread = spread.value;
-        measure();
-        if (wasSpread !== spread.value) current.value = normalise(current.value);
-    });
+    resizeObserver = new ResizeObserver(measure);
     if (stage.value) resizeObserver.observe(stage.value);
-    // cuts measured with the fallback font would be off
-    void document.fonts?.ready.then(() => splits.clear());
+    loadFonts();
     window.addEventListener('keydown', onKey);
     window.addEventListener('pointerdown', () => preload('flip', 'coin', 'unlock', 'sparkle'), { once: true });
     void afterArrive();
@@ -489,6 +636,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
     resizeObserver?.disconnect();
+    document.fonts?.removeEventListener('loadingdone', onFontLoaded);
     window.removeEventListener('keydown', onKey);
     clearTimeout(flipTimer);
     audio?.pause();
@@ -564,7 +712,7 @@ function onSlide(e: Event) {
                 v-if="size.w"
                 ref="bookEl"
                 class="book"
-                :class="{ 'book--spread': spread, 'book--single': !spread, 'is-flipping': flip }"
+                :class="{ 'book--spread': spread, 'book--single': !spread, 'is-flipping': flip, 'is-laying-out': !laidOut }"
                 :style="{ '--pw': `${size.w}px`, '--ph': `${size.h}px` }"
             >
                 <div class="book__cover" />
@@ -573,15 +721,11 @@ function onSlide(e: Event) {
                 <template v-if="spread">
                     <div class="book__slot book__slot--left" @click="onPageClick($event, -1)">
                         <BookPage
-                            :key="`L${under.left}`"
-                            :page="pageAt(under.left!)"
-                            :number="under.left!"
+                            :key="`L${faceKey(under.left)}`"
+                            v-bind="{ ...pageProps, ...face(under.left) }"
                             side="left"
-                            :is-end="under.left! > total"
-                            :chapter-number="chapterNumberOf(under.left!)"
-                            :narrating="narratedPage === under.left"
+                            :narrating="!!under.left && narratedPage === under.left.n"
                             :narration-progress="narrationProgress"
-                            v-bind="pageProps"
                             v-model:auto-unlock="autoUnlock"
                             @unlock="unlock"
                             @restart="turnTo(1)"
@@ -590,16 +734,18 @@ function onSlide(e: Event) {
                     </div>
                     <div class="book__slot book__slot--right" @click="onPageClick($event, 1)">
                         <BookPage
-                            :key="`R${under.right}`"
-                            :page="pageAt(under.right!)"
-                            :number="under.right!"
+                            :key="`R${faceKey(under.right)}`"
+                            v-bind="{ ...pageProps, ...face(under.right) }"
                             side="right"
-                            :is-end="under.right === total + 1"
-                            :teaser="!!pageAt(under.left!)?.locked && pageAt(under.left!)?.locked === pageAt(under.right!)?.locked"
-                            :chapter-number="chapterNumberOf(under.right!)"
-                            :narrating="narratedPage === under.right"
+                            :teaser="
+                                !!under.left &&
+                                !!under.right &&
+                                under.left.n !== under.right.n &&
+                                !!pageAt(under.left.n)?.locked &&
+                                pageAt(under.left.n)?.locked === pageAt(under.right.n)?.locked
+                            "
+                            :narrating="!!under.right && narratedPage === under.right.n"
                             :narration-progress="narrationProgress"
-                            v-bind="pageProps"
                             v-model:auto-unlock="autoUnlock"
                             @unlock="unlock"
                             @restart="turnTo(1)"
@@ -611,22 +757,14 @@ function onSlide(e: Event) {
 
                 <div v-else class="book__slot book__slot--single" @click="onPageClick($event, 0)">
                     <BookPage
-                        :key="`S${under.single}`"
-                        :page="pageAt(under.single!)"
-                        :number="under.single!"
-                        paged
-                        :split="splits.get(under.single!) ?? null"
-                        :part="under.part"
+                        :key="`S${faceKey(under.single)}`"
+                        v-bind="{ ...pageProps, ...face(under.single) }"
                         side="single"
-                        :is-end="under.single! > total"
-                        :chapter-number="chapterNumberOf(under.single!)"
-                        :narrating="narratedPage === under.single"
+                        :narrating="!!under.single && narratedPage === under.single.n"
                         :narration-progress="narrationProgress"
-                        v-bind="pageProps"
                         v-model:auto-unlock="autoUnlock"
                         @unlock="unlock"
                         @restart="turnTo(1)"
-                        @split="onSplit(under.single!, $event)"
                     />
                 </div>
 
@@ -639,32 +777,20 @@ function onSlide(e: Event) {
                 >
                     <div class="leaf__face leaf__face--front">
                         <BookPage
-                            :page="pageAt(leaf.front)"
-                            :number="leaf.front"
-                            :paged="!spread"
-                            :split="spread ? null : (splits.get(leaf.front) ?? null)"
-                            :part="leaf.frontPart"
-                            @split="onSplit(leaf.front, $event)"
+                            v-bind="{ ...pageProps, ...face(leaf.front) }"
                             :side="spread ? (flip.dir === 1 ? 'right' : 'left') : 'single'"
-                            :is-end="leaf.front > total"
-                            :chapter-number="chapterNumberOf(leaf.front)"
                             still
-                            v-bind="pageProps"
                         />
                     </div>
                     <div class="leaf__face leaf__face--back">
-                        <BookPage
-                            v-if="leaf.back !== null"
-                            :page="pageAt(leaf.back)"
-                            :number="leaf.back"
-                            :side="flip.dir === 1 ? 'left' : 'right'"
-                            :is-end="leaf.back > total"
-                            :chapter-number="chapterNumberOf(leaf.back)"
-                            still
-                            v-bind="pageProps"
-                        />
+                        <BookPage v-if="spread" v-bind="{ ...pageProps, ...face(leaf.back) }" :side="flip.dir === 1 ? 'left' : 'right'" still />
                         <div v-else class="leaf__blank" />
                     </div>
+                </div>
+
+                <!-- Never seen: the page every other page is measured on -->
+                <div class="book__measure" aria-hidden="true">
+                    <BookPage ref="measurer" :page="MEASURE_PAGE" :number="0" :side="spread ? 'left' : 'single'" :chapter-number="1" measurer still />
                 </div>
             </div>
         </main>
@@ -698,7 +824,7 @@ function onSlide(e: Event) {
                         min="1"
                         :max="total"
                         :value="sliderValue"
-                        :step="step"
+                        :step="1"
                         aria-label="Przejdź do strony"
                         :style="{ '--fill': `${((sliderValue - 1) / Math.max(1, total - 1)) * 100}%` }"
                         @change="onSlide"
@@ -976,6 +1102,21 @@ function onSlide(e: Event) {
 
 .book--single {
     width: var(--pw);
+}
+
+/* Until every page is measured, the pairing is not known yet. */
+.book.is-laying-out .book__slot {
+    visibility: hidden;
+}
+
+.book__measure {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--pw);
+    height: var(--ph);
+    visibility: hidden;
+    pointer-events: none;
 }
 
 @keyframes book-in {

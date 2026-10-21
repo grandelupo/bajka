@@ -3,18 +3,16 @@ import CoinIcon from '@/components/story/CoinIcon.vue';
 import Dragon from '@/components/story/Dragon.vue';
 import type { PageSplit, ReaderPage } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { Image as ImageIcon, LoaderCircle, Lock, X } from 'lucide-vue-next';
+import { LoaderCircle, Lock } from 'lucide-vue-next';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 /*
  * One page of the book. Whatever is on it — text, an illustration, a lock or
  * the last page — has to fit the paper exactly: the reader never scrolls.
- * So after every layout the text is sized down (and the picture shrunk, or
- * tucked behind a button) until everything sits on the page.
- *
- * On a phone ("paged") the picture is never hidden or squeezed: a page that
- * will not fit at a comfortable size is cut, between sentences, into parts —
- * 26A with the whole picture, 26B with the rest of the words.
+ * The picture is never hidden or cropped: it sits whole above the words, at
+ * a comfortable size. A page that will not fit is cut by the reader, between
+ * sentences, into parts (26A, 26B) — or, with two pages side by side, its
+ * picture gets a whole page of its own facing the words (a plate).
  */
 const props = withDefaults(
     defineProps<{
@@ -39,17 +37,35 @@ const props = withDefaults(
         registeredFreePages?: number;
         /** The facing page already shows the lock card; this one just teases. */
         teaser?: boolean;
-        /** May be cut into parts instead of shrinking (the one-page layout). */
-        paged?: boolean;
-        /** Where this page is cut, once measured; until then it measures itself and emits `split`. */
+        /** Where this page is cut into parts (measured by the reader); null: shown whole. */
         split?: PageSplit | null;
-        /** Which part to show; -1 is the last one. */
+        /** Which part of the page to show. */
         part?: number;
+        /** A full-page illustration, facing the page's words. */
+        plate?: boolean;
+        /** The picture has a page of its own, so the words come without it. */
+        noFigure?: boolean;
+        /** The page number to print, e.g. "26B"; none on a plate. */
+        folio?: string | null;
+        /** Never shown: only lends its layout to `measure()`. */
+        measurer?: boolean;
     }>(),
-    { isEnd: false, still: false, narrating: false, narrationProgress: 0, chapterNumber: null, paged: false, split: null, part: 0 },
+    {
+        isEnd: false,
+        still: false,
+        narrating: false,
+        narrationProgress: 0,
+        chapterNumber: null,
+        split: null,
+        part: 0,
+        plate: false,
+        noFigure: false,
+        folio: null,
+        measurer: false,
+    },
 );
 
-const emit = defineEmits<{ unlock: []; 'update:autoUnlock': [value: boolean]; restart: []; split: [value: PageSplit] }>();
+const emit = defineEmits<{ unlock: []; 'update:autoUnlock': [value: boolean]; restart: [] }>();
 
 const root = ref<HTMLElement | null>(null);
 const inner = ref<HTMLElement | null>(null);
@@ -57,8 +73,6 @@ const text = ref<HTMLElement | null>(null);
 const figure = ref<HTMLElement | null>(null);
 const bodyEl = ref<HTMLElement | null>(null);
 
-const mediaFits = ref(true);
-const showMedia = ref(false);
 const fitted = ref(false);
 const videoReady = ref(false);
 
@@ -83,21 +97,22 @@ function sentencesOf(paragraph: string): string[] {
     return out;
 }
 
-const sentences = computed<Sentence[]>(() =>
-    (props.page?.content ?? '')
+const textOf = (content: string | null | undefined): Sentence[] =>
+    (content ?? '')
         .replace(/\[chapter\][\s\S]*?\[\/chapter\]/, '')
         .trim()
         .split(/\n\s*\n/)
         .map((p) => p.trim())
         .filter(Boolean)
-        .flatMap((p, para) => sentencesOf(p).map((text, i) => ({ para, first: i === 0, text }))),
-);
+        .flatMap((p, para) => sentencesOf(p).map((text, i) => ({ para, first: i === 0, text })));
+
+const sentences = computed(() => textOf(props.page?.content));
 
 /** Sentences [from, to) as paragraphs; one carried over from the part before is not indented. */
-function html(from: number, to: number) {
+function html(all: Sentence[], from: number, to: number) {
     let out = '';
     let open = -1;
-    for (const s of sentences.value.slice(from, to)) {
+    for (const s of all.slice(from, to)) {
         if (s.para !== open) {
             if (open >= 0) out += '</p>';
             out += s.first ? '<p>' : '<p class="cont">';
@@ -108,158 +123,129 @@ function html(from: number, to: number) {
     return open >= 0 ? `${out}</p>` : '';
 }
 
-// Measuring: a paged page whose cuts are not known yet is laid out whole first.
-const measuring = computed(() => props.paged && readable.value && !props.split);
 const partCount = computed(() => props.split?.starts.length ?? 1);
-const partIndex = computed(() => {
-    if (!props.split) return 0;
-    return props.part < 0 ? partCount.value - 1 : Math.min(props.part, partCount.value - 1);
-});
+const partIndex = computed(() => Math.min(Math.max(props.part, 0), partCount.value - 1));
+const firstPart = computed(() => partIndex.value === 0);
 const body = computed(() => {
     const starts = props.split?.starts ?? [0];
     const k = partIndex.value;
-    return html(starts[k] ?? 0, starts[k + 1] ?? sentences.value.length);
+    return html(sentences.value, starts[k] ?? 0, starts[k + 1] ?? sentences.value.length);
 });
-const firstPart = computed(() => partIndex.value === 0);
-const folio = computed(() => (partCount.value > 1 ? `${props.number}${String.fromCharCode(65 + partIndex.value)}` : String(props.number)));
+const showFigure = computed(() => !!props.page?.image && firstPart.value && !props.noFigure);
+const folioText = computed(() => props.folio ?? String(props.number));
+
+/* Sizes, the same for laying out and for measuring. */
+function metrics(box: HTMLElement) {
+    const H = box.clientHeight;
+    const W = box.clientWidth;
+    const maxSize = Math.min(21, Math.max(15, W / 22));
+    return { H, W, maxSize, minSize: Math.max(15, maxSize - 3), side: Math.floor(Math.min(W, H * 0.5)) };
+}
+
+/** The picture whole, square, as wide as the page allows — or no picture. */
+function dress(t: HTMLElement, fig: HTMLElement | null, side: number, withFigure: boolean) {
+    if (fig) fig.style.display = withFigure ? '' : 'none';
+    if (fig && withFigure) {
+        t.dataset.media = 'square';
+        fig.style.width = fig.style.height = `${side}px`;
+    } else t.dataset.media = 'none';
+}
 
 function fit() {
     const box = inner.value;
     const t = text.value;
-    if (!box || !t || !readable.value) {
+    if (props.measurer) return;
+    if (!box || !t || !readable.value || props.plate) {
         fitted.value = true;
         return;
     }
 
-    const H = box.clientHeight;
-    const W = box.clientWidth;
+    const { H, W, maxSize, minSize, side } = metrics(box);
     if (!H || !W) return;
 
     const fig = figure.value;
-    const maxSize = Math.min(21, Math.max(15, W / 22));
-    const minSize = Math.max(15, maxSize - 3);
-    const fits = () => t.offsetHeight <= H;
-    const done = (media: 'block' | 'float' | 'square' | 'none') => {
-        t.dataset.media = media;
-        mediaFits.value = media !== 'none' || !fig;
-        fitted.value = true;
-        // Show it in this very frame, not after Vue's next render.
-        root.value?.classList.add('is-fitted');
-    };
-
-    if (props.paged) {
-        // The whole picture, square, as wide as the page allows.
-        const side = Math.floor(Math.min(W, H * 0.5));
-        const square = () => {
-            if (!fig) return;
-            t.dataset.media = 'square';
-            fig.style.width = fig.style.height = `${side}px`;
-        };
-
-        if (measuring.value) {
-            emit('split', cuts(t, square, minSize, fits));
-            return; // laid out again as soon as the cuts come back
-        }
-
-        if (fig) square();
-        else t.dataset.media = 'none';
-        let size = maxSize;
-        t.style.fontSize = `${size}px`;
-        while (!fits() && size > 12) {
-            size -= 0.5;
-            t.style.fontSize = `${size}px`;
-        }
-        return done(fig ? 'square' : 'none');
-    }
-
-    if (fig) {
-        // 1. The picture across the page, above comfortable text.
-        t.dataset.media = 'block';
-        fig.style.width = '';
-        const floor = Math.max(H * 0.28, 110);
-        fig.style.height = `${floor}px`;
-        for (let size = maxSize; size >= minSize; size -= 0.5) {
-            t.style.fontSize = `${size}px`;
-            if (fits()) {
-                fig.style.height = `${Math.min(floor + H - t.offsetHeight, H * 0.56, W * 0.85)}px`;
-                return done('block');
-            }
-        }
-
-        // 2. The picture tucked into the outer corner, text flowing round it.
-        t.dataset.media = 'float';
-        fig.style.height = '';
-        for (let size = maxSize; size >= 13.5; size -= 0.5) {
-            t.style.fontSize = `${size}px`;
-            for (const width of [0.5, 0.44, 0.38]) {
-                fig.style.width = `${width * 100}%`;
-                if (fits()) return done('float');
-            }
-        }
-    }
-
-    // 3. The text alone, as large as it will go (the picture waits behind a button).
-    t.dataset.media = 'none';
+    dress(t, fig, side, !!fig);
     let size = maxSize;
     t.style.fontSize = `${size}px`;
-    while (!fits() && size > 10.5) {
-        size -= 0.5;
+    while (t.offsetHeight > H && size > 12) {
+        // step down, never skipping the size the page was measured at
+        size = size > minSize && size - 0.5 < minSize ? minSize : size - 0.5;
         t.style.fontSize = `${size}px`;
     }
-    done('none');
+    fitted.value = true;
+    // Show it in this very frame, not after Vue's next render.
+    root.value?.classList.add('is-fitted');
 }
 
 /**
- * Where to cut a paged page: fill the first part (title, picture, words) and
- * each next one (words only) with as many sentences as fit at `size`.
+ * Where to cut a page: fill the first part (title, picture, words) and each
+ * next one (words only) with as many sentences as fit at a comfortable size.
+ * Called on the hidden measuring page, dressed up as `page` for the occasion.
  */
-function cuts(t: HTMLElement, square: () => void, size: number, fits: () => boolean): PageSplit {
+function measure(page: ReaderPage, chapterNumber: number | null, withFigure: boolean): PageSplit {
+    const box = inner.value!;
+    const t = text.value!;
     const el = bodyEl.value!;
-    const head = t.querySelector<HTMLElement>('.bp__chapter');
     const fig = figure.value;
-    const all = sentences.value;
-    const kept = el.innerHTML;
-    t.style.fontSize = `${size}px`;
+    const head = t.querySelector<HTMLElement>('.bp__chapter');
+    const all = textOf(page.content);
+    const { H, minSize, side } = metrics(box);
+    const fits = () => t.offsetHeight <= H;
 
-    const starts = [0];
-    for (let from = 0, part = 0; from < all.length; part++) {
-        // later parts have no title and no picture
-        if (head) head.style.display = part ? 'none' : '';
-        if (fig) fig.style.display = part ? 'none' : '';
-        if (part === 0) square();
-        else t.dataset.media = 'none';
-
-        const fitsUpTo = (to: number) => {
-            el.innerHTML = html(from, to);
-            return fits();
-        };
-        if (fitsUpTo(all.length)) break;
-        // the most sentences that fit; on a tiny page the picture may have its
-        // part to itself, otherwise at least one sentence, so the page moves on
-        let lo = from + 1;
-        let hi = all.length - 1;
-        if (!fitsUpTo(lo)) {
-            if (part === 0 && (fig || head)) lo = from;
-        } else {
-            while (lo < hi) {
-                const mid = Math.ceil((lo + hi) / 2);
-                if (fitsUpTo(mid)) lo = mid;
-                else hi = mid - 1;
-            }
-        }
-        starts.push(lo);
-        from = lo;
+    root.value!.classList.toggle('bp--chapter', !!page.chapter);
+    if (head) {
+        head.querySelector('h2')!.textContent = page.chapter ?? '';
+        const no = head.querySelector<HTMLElement>('.bp__chapter-no');
+        if (no) no.textContent = chapterNumber ? `Rozdział ${chapterNumber}` : '';
     }
+    const picture = withFigure && !!page.image;
 
-    el.innerHTML = kept;
-    if (head) head.style.display = '';
-    if (fig) fig.style.display = '';
+    const cutAt = (size: number) => {
+        t.style.fontSize = `${size}px`;
+        const starts = [0];
+        for (let from = 0, part = 0; from < all.length; part++) {
+            // later parts have no title and no picture
+            if (head) head.style.display = part === 0 && page.chapter ? '' : 'none';
+            dress(t, fig, side, part === 0 && picture);
+
+            const fitsUpTo = (to: number) => {
+                el.innerHTML = html(all, from, to);
+                return fits();
+            };
+            if (fitsUpTo(all.length)) break;
+            // the most sentences that fit; on a tiny page the picture may have its
+            // part to itself, otherwise at least one sentence, so the page moves on
+            let lo = from + 1;
+            let hi = all.length - 1;
+            if (!fitsUpTo(lo)) {
+                if (part === 0 && (picture || page.chapter)) lo = from;
+            } else {
+                while (lo < hi) {
+                    const mid = Math.ceil((lo + hi) / 2);
+                    if (fitsUpTo(mid)) lo = mid;
+                    else hi = mid - 1;
+                }
+            }
+            starts.push(lo);
+            from = lo;
+        }
+        return starts;
+    };
+
+    // A last part of a line or two is a sad page: a little smaller type may spare it.
+    let starts = cutAt(minSize);
+    if (starts.length > 1 && all.length - starts[starts.length - 1] <= 2) {
+        const tighter = cutAt(minSize - 1.5);
+        if (tighter.length < starts.length) starts = tighter;
+    }
 
     const lengths = all.map((s) => s.text.replace(/<[^>]+>/g, '').length);
     const total = lengths.reduce((a, b) => a + b, 0) || 1;
     const at = starts.map((start) => lengths.slice(0, start).reduce((a, b) => a + b, 0) / total);
     return { starts, at };
 }
+
+defineExpose({ measure });
 
 let observer: ResizeObserver | null = null;
 let raf = 0;
@@ -280,9 +266,9 @@ onBeforeUnmount(() => {
     cancelAnimationFrame(raf);
 });
 
-// Another part of the same page, or its cuts just arrived / were dropped.
+// Another part of the same page, or new cuts.
 watch(
-    () => [props.split, partIndex.value],
+    () => [props.split, partIndex.value, props.noFigure, props.plate],
     async () => {
         fitted.value = false;
         await nextTick();
@@ -295,7 +281,6 @@ watch(
     async () => {
         fitted.value = false;
         videoReady.value = false;
-        showMedia.value = false;
         await nextTick();
         fit();
     },
@@ -325,8 +310,24 @@ const coinsHref = computed(() => route('coins.purchase', { return: props.returnU
     >
         <div class="bp__paper" />
 
+        <!-- ── A full-page illustration, facing its words ───────────── -->
+        <div v-if="readable && plate" class="bp__plate">
+            <img :src="page!.image!" alt="" draggable="false" />
+            <video
+                v-if="page!.video && !still"
+                :src="page!.video"
+                :class="{ 'is-ready': videoReady }"
+                autoplay
+                muted
+                loop
+                playsinline
+                preload="metadata"
+                @canplay="videoReady = true"
+            />
+        </div>
+
         <!-- ── Readable page ───────────────────────────────────────── -->
-        <div v-if="readable" ref="inner" class="bp__inner">
+        <div v-else-if="readable" ref="inner" class="bp__inner">
             <div ref="text" class="bp__text">
                 <header v-if="page!.chapter && firstPart" class="bp__chapter">
                     <span v-if="chapterNumber" class="bp__chapter-no">Rozdział {{ chapterNumber }}</span>
@@ -336,7 +337,7 @@ const coinsHref = computed(() => route('coins.purchase', { return: props.returnU
                         <path d="M60 1 l3 5 -3 5 -3 -5 Z" fill="currentColor" />
                     </svg>
                 </header>
-                <figure v-if="page!.image && firstPart" ref="figure" class="bp__figure">
+                <figure v-if="showFigure" ref="figure" class="bp__figure">
                     <img :src="page!.image" alt="" draggable="false" />
                     <video
                         v-if="page!.video && !still"
@@ -423,22 +424,10 @@ const coinsHref = computed(() => route('coins.purchase', { return: props.returnU
         <!-- Inside of the back cover -->
         <div v-else class="bp__blank" />
 
-        <footer v-if="page || isEnd" class="bp__folio">
-            <span v-if="!isEnd">{{ folio }}</span>
+        <footer v-if="(page || isEnd) && !plate" class="bp__folio">
+            <span v-if="!isEnd">{{ folioText }}</span>
             <span v-else>✦</span>
         </footer>
-
-        <!-- The picture, when it did not fit beside the text -->
-        <template v-if="readable && page!.image && !mediaFits && !still && !paged">
-            <button type="button" class="bp__peek" title="Pokaż ilustrację" data-sfx="whoosh" @click="showMedia = true"><ImageIcon /></button>
-            <Transition name="peek">
-                <div v-if="showMedia" class="bp__overlay" @click="showMedia = false">
-                    <img :src="page!.image" alt="" />
-                    <video v-if="page!.video" :src="page!.video" autoplay muted loop playsinline />
-                    <button type="button" class="bp__overlay-close" aria-label="Zamknij"><X /></button>
-                </div>
-            </Transition>
-        </template>
 
         <span v-if="narrating" class="bp__narration" aria-hidden="true"> <i /><i /><i /><i /> </span>
         <span v-if="narrating" class="bp__narration-bar" :style="{ transform: `scaleX(${narrationProgress})` }" />
@@ -687,6 +676,48 @@ const coinsHref = computed(() => route('coins.purchase', { return: props.returnU
     padding-right: 9cqw;
 }
 
+/* ── Plate: the picture across the whole page ───────────────────────── */
+.bp__plate {
+    position: absolute;
+    inset: 0;
+    background: #2a2622;
+}
+
+.bp__plate img,
+.bp__plate video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.bp__plate video {
+    opacity: 0;
+    transition: opacity 0.8s;
+}
+
+.bp__plate video.is-ready {
+    opacity: 1;
+}
+
+/* the paper's curve toward the spine, over the picture */
+.bp--left .bp__plate::after,
+.bp--right .bp__plate::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.bp--left .bp__plate::after {
+    background: linear-gradient(90deg, transparent 82%, rgb(0 0 0 / 0.28));
+}
+
+.bp--right .bp__plate::after {
+    background: linear-gradient(270deg, transparent 82%, rgb(0 0 0 / 0.28));
+}
+
 /* ── Lock ──────────────────────────────────────────────────────────── */
 .bp__lock,
 .bp__end {
@@ -858,81 +889,6 @@ const coinsHref = computed(() => route('coins.purchase', { return: props.returnU
 }
 
 /* ── Picture on demand ─────────────────────────────────────────────── */
-.bp__peek {
-    position: absolute;
-    top: 2.5cqh;
-    right: 3cqw;
-    display: grid;
-    place-items: center;
-    width: 2.4rem;
-    height: 2.4rem;
-    border-radius: 50%;
-    background: var(--gold);
-    color: var(--night-deep);
-    box-shadow: var(--shadow-soft);
-    animation: bob 2.4s var(--ease-in-out) infinite;
-}
-
-.bp--left .bp__peek {
-    right: auto;
-    left: 3cqw;
-}
-
-.bp__peek svg {
-    width: 1.15rem;
-    height: 1.15rem;
-}
-
-.bp__overlay {
-    position: absolute;
-    inset: 0;
-    z-index: 5;
-    cursor: zoom-out;
-}
-
-.bp__overlay img,
-.bp__overlay video {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.bp__overlay-close {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    display: grid;
-    place-items: center;
-    width: 2.4rem;
-    height: 2.4rem;
-    border-radius: 50%;
-    background: rgb(255 250 240 / 0.9);
-    color: var(--night);
-}
-
-.bp__overlay-close svg {
-    width: 1.2rem;
-}
-
-.peek-enter-active,
-.peek-leave-active {
-    transition:
-        opacity 0.3s,
-        clip-path 0.6s var(--ease-in-out);
-}
-
-.peek-enter-from,
-.peek-leave-to {
-    opacity: 0;
-    clip-path: circle(0% at 90% 5%);
-}
-
-.peek-enter-to,
-.peek-leave-from {
-    clip-path: circle(150% at 90% 5%);
-}
 
 /* ── Narration ─────────────────────────────────────────────────────── */
 .bp__narration {
