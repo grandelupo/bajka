@@ -41,6 +41,10 @@ const zl = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(2).replac
 const selected = ref<Package | null>(null);
 const preparing = ref(false);
 const processing = ref(false);
+const redirecting = ref(false);
+// Stripe's script never arrived — an ad blocker, a privacy extension or a
+// filtering DNS. The reader pays on Stripe's own page instead.
+const stripeBlocked = ref(false);
 const error = ref<string | null>(null);
 const paymentPanel = ref<HTMLElement | null>(null);
 const method = ref<string | null>(null);
@@ -59,7 +63,17 @@ onMounted(async () => {
     if (props.pending && !pendingTimedOut.value) {
         pollTimer = window.setTimeout(() => router.visit(confirmUrl(props.pending!.id, props.pending!.tries), { replace: true }), 3000);
     }
-    if (props.stripeKey) stripe = await loadStripe(props.stripeKey);
+    if (!props.stripeKey) return;
+
+    try {
+        stripe = await loadStripe(props.stripeKey);
+    } catch {
+        stripe = null;
+    }
+    if (!stripe) {
+        stripeBlocked.value = true;
+        console.warn('[bajka] js.stripe.com nie wczytał się — płatność pójdzie przez stronę Stripe.');
+    }
 });
 
 onBeforeUnmount(() => clearTimeout(pollTimer));
@@ -72,7 +86,7 @@ async function choose(pkg: Package, event: MouseEvent) {
     burstFrom(event.currentTarget as Element, { count: 12, spread: 90 });
 
     if (!stripe) {
-        error.value = 'Płatności są chwilowo niedostępne. Spróbuj ponownie za moment.';
+        await goToCheckout(pkg);
         return;
     }
 
@@ -123,6 +137,28 @@ async function choose(pkg: Package, event: MouseEvent) {
     element.on('change', (event) => (method.value = event.value.type));
     element.mount('#payment-element');
     preparing.value = false;
+}
+
+// Stripe's hosted checkout: our own domain answers the POST and the reader
+// is sent to checkout.stripe.com as an ordinary page load, so nothing of
+// Stripe's has to run here for the payment to go through.
+async function goToCheckout(pkg: Package) {
+    if (redirecting.value) return;
+    redirecting.value = true;
+    error.value = null;
+    preparing.value = false;
+
+    const { ok, data } = await postJson<{ url?: string; message?: string }>(route('transactions.create-checkout-session'), {
+        package_id: pkg.id,
+    });
+
+    if (ok && data.url) {
+        window.location.href = data.url;
+        return;
+    }
+
+    redirecting.value = false;
+    error.value = data.message ?? 'Nie udało się otworzyć strony płatności.';
 }
 
 async function pay() {
@@ -220,8 +256,16 @@ async function pay() {
                         <strong class="pay__total">{{ zl(selected.price) }} zł</strong>
                     </header>
 
-                    <div v-if="preparing" class="pay__loading"><LoaderCircle class="animate-spin" /> Przygotowujemy bezpieczną płatność…</div>
-                    <div id="payment-element" class="pay__element" :class="{ 'is-hidden': preparing }" />
+                    <div v-if="redirecting" class="pay__loading">
+                        <LoaderCircle class="animate-spin" /> Przenosimy Cię na bezpieczną stronę Stripe…
+                    </div>
+                    <template v-else-if="stripeBlocked">
+                        <p class="pay__note">Twoja przeglądarka blokuje nasz formularz płatności — zapłacisz na bezpiecznej stronie Stripe.</p>
+                    </template>
+                    <template v-else>
+                        <div v-if="preparing" class="pay__loading"><LoaderCircle class="animate-spin" /> Przygotowujemy bezpieczną płatność…</div>
+                        <div id="payment-element" class="pay__element" :class="{ 'is-hidden': preparing }" />
+                    </template>
 
                     <p v-if="error" class="pay__error"><CircleAlert class="h-5 w-5 flex-none" /> {{ error }}</p>
                     <p v-else-if="processing && method === 'blik'" class="pay__note pay__note--blik">
@@ -231,13 +275,17 @@ async function pay() {
                     <button
                         type="button"
                         class="btn btn--gold btn--block btn--shine"
-                        :disabled="preparing || processing || (!!error && !stripe)"
+                        :disabled="preparing || processing || redirecting"
                         data-sfx="none"
-                        @click="pay"
+                        @click="stripeBlocked ? goToCheckout(selected) : pay()"
                     >
-                        <LoaderCircle v-if="processing" class="animate-spin" />
+                        <LoaderCircle v-if="processing || redirecting" class="animate-spin" />
                         <Sparkles v-else />
                         Zapłać {{ zl(selected.price) }} zł
+                    </button>
+
+                    <button v-if="!stripeBlocked && !redirecting" type="button" class="pay__alt" data-sfx="none" @click="goToCheckout(selected)">
+                        Formularz się nie wczytuje? Zapłać na stronie Stripe
                     </button>
                     <p v-if="returnTo" class="pay__note">Po zakupie wrócisz prosto do swojej strony.</p>
                 </div>
@@ -527,6 +575,26 @@ async function pay() {
 
 .pay__element.is-hidden {
     display: none;
+}
+
+.pay__alt {
+    justify-self: center;
+    padding: 0.2rem 0.3rem;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: var(--moss, #15322f);
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+    cursor: pointer;
+    opacity: 0.7;
+}
+
+.pay__alt:hover {
+    opacity: 1;
 }
 
 .pay__error {

@@ -46,4 +46,16 @@ return [
     */
 
     'payment_methods' => ['card', 'blik', 'link'],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Payment methods on Stripe's own checkout page
+    |--------------------------------------------------------------------------
+    |
+    | The fallback for readers whose browser blocks js.stripe.com. Link is
+    | left out: Stripe's page offers it alongside card by itself.
+    |
+    */
+
+    'checkout_payment_methods' => ['card', 'blik'],
 ];

@@ -16,6 +16,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
+        // Stripe signs its webhook instead, and carries no session.
+        $middleware->validateCsrfTokens(except: ['stripe/webhook']);
+
         $middleware->web(append: [
             HandleAppearance::class,
             HandleInertiaRequests::class,

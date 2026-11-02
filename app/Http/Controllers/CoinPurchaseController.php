@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
+use Stripe\Checkout\Session;
 use Stripe\PaymentIntent;
 use Stripe\Stripe;
 
@@ -92,6 +93,66 @@ class CoinPurchaseController extends Controller
     }
 
     /**
+     * Stripe's own checkout page, for readers whose browser blocks
+     * js.stripe.com — an ad blocker, a privacy extension, a filtering DNS.
+     * Nothing of Stripe's runs on our page here: the reader is simply sent
+     * to checkout.stripe.com and comes back to confirm() when they are done.
+     */
+    public function createCheckoutSession(Request $request): JsonResponse
+    {
+        $request->validate(['package_id' => 'required|string']);
+
+        $package = config("coins.packages.{$request->package_id}");
+        if (! $package) {
+            return response()->json(['message' => 'Nieznany pakiet'], 400);
+        }
+
+        Stripe::setApiKey(config('services.stripe.secret'));
+
+        try {
+            $session = Session::create([
+                'mode' => 'payment',
+                'locale' => 'pl',
+                'customer_email' => $request->user()->email,
+                'client_reference_id' => (string) $request->user()->id,
+                'payment_method_types' => config('coins.checkout_payment_methods'),
+                // Keep the total in złoty. Left on, Stripe converts it to the
+                // reader's local currency with a 4% fee, and confirm() would
+                // then record that converted amount as the price in PLN.
+                'adaptive_pricing' => ['enabled' => false],
+                'line_items' => [[
+                    'quantity' => 1,
+                    'price_data' => [
+                        'currency' => 'pln',
+                        'unit_amount' => (int) round($package['price'] * 100),
+                        'product_data' => [
+                            'name' => $package['name'],
+                            'description' => "{$package['coins']} monet do Bajki",
+                        ],
+                    ],
+                ]],
+                // confirm() reads the package off the intent, exactly as it
+                // does for a payment made on our own page.
+                'payment_intent_data' => [
+                    'metadata' => [
+                        'package_id' => $request->package_id,
+                        'coins' => $package['coins'],
+                        'user_id' => $request->user()->id,
+                    ],
+                ],
+                'success_url' => route('coins.purchase.confirm').'?session_id={CHECKOUT_SESSION_ID}',
+                'cancel_url' => route('coins.purchase'),
+            ]);
+
+            return response()->json(['url' => $session->url]);
+        } catch (\Exception $e) {
+            report($e);
+
+            return response()->json(['message' => 'Nie udało się otworzyć strony płatności'], 500);
+        }
+    }
+
+    /**
      * Stripe sends the reader here after paying (and the page calls it
      * directly when no redirect was needed). Coins are granted once per
      * payment, from the package recorded on the intent itself.
@@ -99,13 +160,28 @@ class CoinPurchaseController extends Controller
     public function confirm(Request $request): RedirectResponse
     {
         $intentId = (string) $request->query('payment_intent', '');
+        $sessionId = (string) $request->query('session_id', '');
         $returnTo = $request->session()->get('coins.return_to') ?: route('dashboard', absolute: false);
 
-        if ($intentId === '') {
+        if ($intentId === '' && $sessionId === '') {
             return redirect()->route('coins.purchase')->with('error', 'Brak informacji o płatności.');
         }
 
         Stripe::setApiKey(config('services.stripe.secret'));
+
+        // Coming back from Stripe's own checkout page: the intent hangs off
+        // the session, and from there on this is an ordinary payment.
+        if ($intentId === '') {
+            try {
+                $intentId = (string) (Session::retrieve($sessionId)->payment_intent ?? '');
+            } catch (\Exception $e) {
+                report($e);
+            }
+
+            if ($intentId === '') {
+                return redirect()->route('coins.purchase')->with('error', 'Nie udało się zweryfikować płatności.');
+            }
+        }
 
         try {
             $intent = PaymentIntent::retrieve($intentId);
@@ -133,7 +209,22 @@ class CoinPurchaseController extends Controller
 
         $request->session()->forget('coins.return_to');
 
-        $credited = DB::transaction(function () use ($user, $intent, $package) {
+        $credited = self::credit($user, $intent, $package);
+
+        return redirect($returnTo)->with(
+            'success',
+            $credited ? "Hurra! Dodaliśmy {$package['coins']} monet do Twojej sakiewki." : 'Te monety są już w Twojej sakiewce.'
+        );
+    }
+
+    /**
+     * Put the coins in the reader's sakiewka, once per payment. Both the
+     * reader coming back from Stripe and the webhook arrive here, and
+     * whichever gets there first does the work.
+     */
+    public static function credit(User $user, PaymentIntent $intent, array $package): bool
+    {
+        return DB::transaction(function () use ($user, $intent, $package) {
             User::whereKey($user->id)->lockForUpdate()->first();
 
             if (CoinPurchase::where('stripe_payment_id', $intent->id)->exists()) {
@@ -157,11 +248,6 @@ class CoinPurchaseController extends Controller
 
             return true;
         });
-
-        return redirect($returnTo)->with(
-            'success',
-            $credited ? "Hurra! Dodaliśmy {$package['coins']} monet do Twojej sakiewki." : 'Te monety są już w Twojej sakiewce.'
-        );
     }
 
     /**
