@@ -4,6 +4,7 @@ import NightSky from '@/components/story/NightSky.vue';
 import SplitText from '@/components/story/SplitText.vue';
 import Wave from '@/components/story/Wave.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
+import { track } from '@/lib/analytics';
 import { postJson } from '@/lib/http';
 import { play } from '@/lib/sound';
 import { burstFrom } from '@/lib/sparkle';
@@ -72,6 +73,7 @@ onMounted(async () => {
     }
     if (!stripe) {
         stripeBlocked.value = true;
+        track('stripe_blocked');
         console.warn('[bajka] js.stripe.com nie wczytał się — płatność pójdzie przez stronę Stripe.');
     }
 });
@@ -82,6 +84,13 @@ async function choose(pkg: Package, event: MouseEvent) {
     if (preparing.value || processing.value) return;
     selected.value = pkg;
     error.value = null;
+    track('begin_checkout', {
+        currency: 'PLN',
+        value: pkg.price,
+        package_id: pkg.id,
+        coins: pkg.coins,
+        checkout: stripe ? 'on_site' : 'stripe_page',
+    });
     void play('coin');
     burstFrom(event.currentTarget as Element, { count: 12, spread: 90 });
 

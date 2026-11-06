@@ -1,3 +1,4 @@
+import type { ServerEvent } from '@/lib/analytics';
 import type { PageProps } from '@inertiajs/core';
 import type { LucideIcon } from 'lucide-vue-next';
 import type { Config } from 'ziggy-js';
@@ -22,6 +23,8 @@ export interface SharedData extends PageProps {
     name: string;
     auth: Auth;
     flash: { success?: string | null; error?: string | null };
+    /** One event for Google Analytics, flashed by the server. */
+    analytics: ServerEvent | null;
     googleEnabled: boolean;
     config: { books: { advertised_book_id: number | string } };
     ziggy: Config & { location: string };

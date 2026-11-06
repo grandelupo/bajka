@@ -8,6 +8,7 @@ use App\Models\Page;
 use App\Models\StripeCustomer;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Support\Analytics;
 use App\Support\BookReader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -210,6 +211,16 @@ class CoinPurchaseController extends Controller
         $request->session()->forget('coins.return_to');
 
         $credited = self::credit($user, $intent, $package);
+
+        if ($credited) {
+            Analytics::report('purchase', [
+                'transaction_id' => $intent->id,
+                'currency' => 'PLN',
+                'value' => $intent->amount / 100,
+                'coins' => $package['coins'],
+                'package_id' => $intent->metadata['package_id'] ?? null,
+            ]);
+        }
 
         return redirect($returnTo)->with(
             'success',

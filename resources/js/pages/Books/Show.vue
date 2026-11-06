@@ -6,6 +6,7 @@ import FlashToast from '@/components/story/FlashToast.vue';
 import Logo from '@/components/story/Logo.vue';
 import NightSky from '@/components/story/NightSky.vue';
 import SoundToggle from '@/components/story/SoundToggle.vue';
+import { pageView, track } from '@/lib/analytics';
 import { postJson } from '@/lib/http';
 import { ambienceScene, duckAmbience, play, preload, preloadAmbience, SCENES, setAmbience, type Scene } from '@/lib/sound';
 import { burstFrom, coinsFly } from '@/lib/sparkle';
@@ -262,6 +263,7 @@ const returnUrl = computed(() => new URL(pageUrl(current.value)).pathname);
 watch(current, (n) => {
     const url = pageUrl(n);
     window.history.replaceState(window.history.state, '', url);
+    pageView(new URL(url).pathname);
     try {
         localStorage.setItem(`bajka:progress:${props.book.id}`, String(Math.min(n, total.value)));
     } catch {
@@ -382,6 +384,7 @@ const bookEl = ref<HTMLElement | null>(null);
 async function unlock() {
     if (unlocking.value || !lockedHere.value.length) return;
     if (coins.value < lockCost.value) {
+        track('not_enough_coins', { book_id: props.book.id, from_page: current.value, coins: coins.value, needed: lockCost.value });
         router.visit(route('coins.purchase', { return: returnUrl.value }));
         return;
     }
@@ -411,6 +414,12 @@ async function unlock() {
     unlocking.value = false;
     void play('unlock');
     setTimeout(() => void play('sparkle'), 180);
+    track('unlock_pages', {
+        book_id: props.book.id,
+        pages: data.pages.length,
+        coins: data.pages.length * props.book.price_per_page,
+        from_page: current.value,
+    });
     burstFrom(bookEl.value, { count: 24, spread: 220 });
     if (narrating.value) void playView();
 }
@@ -506,6 +515,7 @@ function toggleNarration() {
         return;
     }
     narrating.value = true;
+    track('narration_start', { book_id: props.book.id, from_page: current.value });
     if (audio && narratedPage.value && audio.src && !audio.ended && audio.currentTime > 0) {
         void audio.play();
         return;

@@ -54,4 +54,9 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI', '/auth/google/callback'),
     ],
 
+    'google_analytics' => [
+        // GA4 measurement id, e.g. G-XXXXXXXXXX. Unset means no tracking at all.
+        'id' => env('GOOGLE_ANALYTICS_ID'),
+    ],
+
 ];

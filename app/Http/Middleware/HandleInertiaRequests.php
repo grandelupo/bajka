@@ -50,6 +50,8 @@ class HandleInertiaRequests extends Middleware
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
             ],
+            // One event for Google Analytics, see App\Support\Analytics.
+            'analytics' => fn () => $request->session()->get('analytics'),
             'googleEnabled' => filled(config('services.google.client_id')),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'config' => [

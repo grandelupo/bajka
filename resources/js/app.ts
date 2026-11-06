@@ -1,10 +1,11 @@
 import '../css/app.css';
 
-import { createInertiaApp } from '@inertiajs/vue3';
+import { createInertiaApp, router } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import type { DefineComponent } from 'vue';
 import { createApp, h } from 'vue';
 import { ZiggyVue } from 'ziggy-js';
+import { reportPage } from './lib/analytics';
 import { vReveal } from './lib/reveal';
 import { play, preload, type SoundName } from './lib/sound';
 
@@ -32,11 +33,16 @@ createInertiaApp({
             .use(ZiggyVue)
             .directive('reveal', vReveal)
             .mount(el);
+
+        reportPage(props.initialPage);
     },
     progress: {
         color: '#f2b84b',
     },
 });
+
+// Every Inertia visit is a page view of its own (see lib/analytics.ts).
+router.on('navigate', (event) => reportPage(event.detail.page));
 
 // Warm up the common sounds on the first touch, which is also the moment
 // browsers let audio start.

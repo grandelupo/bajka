@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\Analytics;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -33,9 +34,11 @@ class GoogleController extends Controller
 
             Auth::login($user);
 
+            Analytics::report($user->wasRecentlyCreated ? 'sign_up' : 'login', ['method' => 'google']);
+
             return redirect()->intended(route('dashboard', absolute: false));
         } catch (\Exception $e) {
             return redirect()->route('login')->with('error', 'Google authentication failed');
         }
     }
-} 
+}

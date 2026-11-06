@@ -20,6 +20,20 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..800,0..100,0..1;1,9..144,300..800,0..100,0..1&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 
+        {{-- Google Analytics, only when a measurement id is configured.
+             Automatic page views are off: Inertia swaps pages without a
+             browser load and the reader turns pages with replaceState, so
+             resources/js/lib/analytics.ts sends every view itself. --}}
+        @if ($gaId = config('services.google_analytics.id'))
+            <script async src="https://www.googletagmanager.com/gtag/js?id={{ $gaId }}"></script>
+            <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', @json($gaId), { send_page_view: false });
+            </script>
+        @endif
+
         @routes
         @vite(['resources/js/app.ts', "resources/js/pages/{$page['component']}.vue"])
         @inertiaHead
