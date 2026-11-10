@@ -671,7 +671,9 @@ function onSlide(e: Event) {
 </script>
 
 <template>
-    <Head :title="`${book.title} — str. ${Math.min(current, total)}`" />
+    <Head :title="`${book.title} — str. ${Math.min(current, total)}`">
+        <link rel="canonical" :href="pageUrl(current)" />
+    </Head>
 
     <div class="reader" :class="ambienceOn && ambienceScene ? `scene--${ambienceScene}` : ''">
         <div class="reader__backdrop" aria-hidden="true">
@@ -683,7 +685,7 @@ function onSlide(e: Event) {
 
         <!-- ── Top bar ────────────────────────────────────────────────── -->
         <header class="reader__top">
-            <Link :href="route('home')" class="reader__home" aria-label="Strona główna">
+            <Link :href="route('about')" class="reader__home" aria-label="O bajce">
                 <Logo :word="false" />
             </Link>
             <div class="reader__title">

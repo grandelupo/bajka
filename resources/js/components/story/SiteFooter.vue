@@ -22,6 +22,7 @@ const year = new Date().getFullYear();
             </div>
             <nav class="footer__nav">
                 <Link :href="route('pages.show', { book: bookId, page: 1 })">Czytaj od początku</Link>
+                <Link :href="route('about')">O bajce</Link>
                 <Link :href="route('dashboard')">Moja półka</Link>
                 <Link :href="route('coins.purchase')">Monety</Link>
             </nav>

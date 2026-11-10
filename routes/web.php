@@ -9,7 +9,11 @@ use App\Http\Controllers\PageController;
 use App\Http\Controllers\StripeWebhookController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', HomeController::class)->name('home');
+// The front door is the story itself. Most readers arrive from a short on
+// their phone, so / opens page one of the advertised book; what used to be
+// here is one tap away at /o-bajce.
+Route::get('/', [PageController::class, 'root'])->name('home');
+Route::get('/o-bajce', HomeController::class)->name('about');
 
 // Stripe talks to us here, signed rather than logged in.
 Route::post('/stripe/webhook', StripeWebhookController::class)->name('stripe.webhook');

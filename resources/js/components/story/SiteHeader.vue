@@ -46,7 +46,7 @@ const onNight = computed(() => props.tone === 'night' && !scrolled.value);
 <template>
     <header class="site-header" :class="{ 'is-night': onNight, 'is-scrolled': scrolled }">
         <div class="wrap site-header__inner">
-            <Link :href="route('home')" class="site-header__logo" aria-label="Bajka — strona główna">
+            <Link :href="route('home')" class="site-header__logo" aria-label="Bajka — otwórz bajkę">
                 <Logo />
             </Link>
 

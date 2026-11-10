@@ -25,7 +25,7 @@ withDefaults(defineProps<{ title?: string; description?: string; eyebrow?: strin
             <Fireflies :count="14" />
             <Landscape />
             <div class="auth__brand">
-                <Link :href="route('home')" aria-label="Bajka — strona główna" style="--logo-gutter: var(--night)">
+                <Link :href="route('home')" aria-label="Bajka — otwórz bajkę" style="--logo-gutter: var(--night)">
                     <Logo />
                 </Link>
                 <SoundToggle class="auth__sound" />

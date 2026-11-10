@@ -12,6 +12,22 @@ use Inertia\Response;
 class PageController extends Controller
 {
     /**
+     * The site's root: page one of the advertised book, read in place. A
+     * fresh install with no book falls back to the page about the bajka.
+     */
+    public function root(): Response|RedirectResponse
+    {
+        $book = Book::find(config('books.advertised_book_id')) ?? Book::query()->first();
+        $first = $book?->pages()->orderBy('page_number')->first();
+
+        if (! $book || ! $first) {
+            return app(HomeController::class)();
+        }
+
+        return $this->show($book, $first);
+    }
+
+    /**
      * The reader. Opening a page never spends coins: a locked page is shown
      * locked, and the reader decides on the page itself whether to unlock it.
      */

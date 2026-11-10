@@ -133,3 +133,28 @@ it('keeps a pending BLIK payment on the coins page and offers BLIK at checkout',
 
     expect(config('coins.payment_methods'))->toContain('blik', 'card');
 });
+
+it('opens the book itself at the root, with no redirect', function () {
+    $book = makeBook();
+    config()->set('books.advertised_book_id', $book->id);
+
+    $response = $this->get('/')->assertOk();
+
+    expect($response->viewData('page')['component'])->toBe('Books/Show')
+        ->and($response->viewData('page')['props']['currentPageNumber'])->toBe(1)
+        ->and($response->viewData('page')['props']['book']['id'])->toBe($book->id);
+});
+
+it('falls back to the page about the bajka when there is no book to open', function () {
+    $response = $this->get('/')->assertOk();
+
+    expect($response->viewData('page')['component'])->toBe('Home');
+});
+
+it('keeps the old homepage as a subpage', function () {
+    makeBook();
+
+    $response = $this->get('/o-bajce')->assertOk();
+
+    expect($response->viewData('page')['component'])->toBe('Home');
+});
